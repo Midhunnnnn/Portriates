@@ -1,0 +1,385 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="main-content order-flow-page">
+  <div class="container">
+    <!-- Header Banner -->
+    <div class="order-header-box">
+      <div class="order-header-badge">COMMISSION STUDIO</div>
+      <h1 class="order-header-title">Give Your Portrait Order</h1>
+      <p class="order-header-subtitle">
+        Upload your reference photograph, personalize your artistic medium & frame, and our master artist Midhun will handcraft your piece.
+      </p>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <form action="/orders/give-order" method="POST" enctype="multipart/form-data" id="orderCommissionForm">
+      <div class="order-builder-layout">
+        <!-- LEFT COLUMN: COMMISSION BUILDER -->
+        <div class="builder-column">
+
+          <!-- STEP 1: PHOTO UPLOAD -->
+          <div class="builder-card">
+            <div class="card-step-badge">STEP 1</div>
+            <h2 class="card-step-title">
+              <i class="fa-solid fa-cloud-arrow-up gold-text"></i> Upload Reference Photograph
+            </h2>
+            <p class="card-step-subtitle">
+              Upload a clear photo with good lighting and facial features. High-resolution photos result in the crispest sketch details.
+            </p>
+
+            <div class="upload-dropzone" id="dropzoneArea">
+              <input 
+                type="file" 
+                name="reference_photo" 
+                id="photoInput" 
+                accept="image/jpeg,image/png,image/webp" 
+                required 
+                class="file-input-hidden"
+              >
+              <div class="dropzone-prompt" id="dropzonePrompt">
+                <div class="upload-icon-circle">
+                  <i class="fa-solid fa-camera-retro"></i>
+                </div>
+                <h4>Drag & Drop your photograph here</h4>
+                <p>or <span class="text-gold">Browse Files</span> from your device</p>
+                <small class="upload-limits">Supports JPG, PNG, WEBP up to 15MB</small>
+              </div>
+
+              <!-- Live Photo Preview -->
+              <div class="photo-preview-wrapper" id="photoPreviewWrap" style="display: none;">
+                <img id="imagePreview" src="" alt="Uploaded reference preview" class="preview-img">
+                <div class="preview-meta">
+                  <span id="fileNameDisplay" class="preview-filename"></span>
+                  <button type="button" class="btn-remove-photo" id="btnRemovePhoto">
+                    <i class="fa-solid fa-trash"></i> Replace Photo
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="photo-tips-box">
+              <strong><i class="fa-solid fa-lightbulb gold-text"></i> Artist Tip:</strong> 
+              Natural daylight shots where eye color, hair flow, and shadows are visible make the most breathtaking pencil portraits!
+            </div>
+          </div>
+
+          <!-- STEP 2: ARTWORK SPECS -->
+          <div class="builder-card">
+            <div class="card-step-badge">STEP 2</div>
+            <h2 class="card-step-title">
+              <i class="fa-solid fa-palette gold-text"></i> Choose Medium & Dimensions
+            </h2>
+
+            <!-- Medium Selection -->
+            <div class="form-group">
+              <label class="form-label">Select Drawing Medium</label>
+              <div class="options-radio-grid">
+                <label class="radio-card">
+                  <input type="radio" name="portrait_medium" value="Graphite Pencil (Classic Shading)" checked>
+                  <div class="radio-card-content">
+                    <div class="rc-title">Graphite Pencil (Classic)</div>
+                    <div class="rc-desc">Silky gradients from 2H to 8B, high precision, timeless monochrome look.</div>
+                    <span class="rc-price">Standard</span>
+                  </div>
+                </label>
+
+                <label class="radio-card">
+                  <input type="radio" name="portrait_medium" value="Charcoal & Graphite Blend">
+                  <div class="radio-card-content">
+                    <div class="rc-title">Charcoal Blend</div>
+                    <div class="rc-desc">Rich velvety blacks with intense chiaroscuro depth and dramatic contrast.</div>
+                    <span class="rc-price">+₹300</span>
+                  </div>
+                </label>
+
+                <label class="radio-card">
+                  <input type="radio" name="portrait_medium" value="Hyper-Realistic Carbon Pencil">
+                  <div class="radio-card-content">
+                    <div class="rc-title">Hyper-Realistic Carbon</div>
+                    <div class="rc-desc">Ultra-refined micro-textures, skin pores, hair strands, and photo-real fidelity.</div>
+                    <span class="rc-price">+₹600</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Size Selection -->
+            <div class="form-group">
+              <label class="form-label">Select Paper Size</label>
+              <div class="options-radio-grid">
+                <label class="radio-card">
+                  <input type="radio" name="portrait_size" value="A4 (8.3 x 11.7 in)" <%= (typeof preselectedSize !== 'undefined' && preselectedSize.includes('A4')) ? 'checked' : '' %>>
+                  <div class="radio-card-content">
+                    <div class="rc-title">A4 Dimension</div>
+                    <div class="rc-desc">8.3 &times; 11.7 in • Best for solo desk portraits & individual sketches.</div>
+                    <span class="rc-price">₹1,800</span>
+                  </div>
+                </label>
+
+                <label class="radio-card">
+                  <input type="radio" name="portrait_size" value="A3 (11.7 x 16.5 in)" <%= (typeof preselectedSize !== 'undefined' && preselectedSize.includes('A3')) ? 'checked' : (!preselectedSize ? 'checked' : '') %>>
+                  <div class="radio-card-content">
+                    <div class="rc-title">A3 Dimension (Bestseller)</div>
+                    <div class="rc-desc">11.7 &times; 16.5 in • Perfect for couples, weddings, and high-impact walls.</div>
+                    <span class="rc-price">₹2,800</span>
+                  </div>
+                </label>
+
+                <label class="radio-card">
+                  <input type="radio" name="portrait_size" value="A2 (16.5 x 23.4 in)" <%= (typeof preselectedSize !== 'undefined' && preselectedSize.includes('A2')) ? 'checked' : '' %>>
+                  <div class="radio-card-content">
+                    <div class="rc-title">A2 Dimension (Large)</div>
+                    <div class="rc-desc">16.5 &times; 23.4 in • Monumental centerpiece for families & halls.</div>
+                    <span class="rc-price">₹4,200</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Number of Faces Selection -->
+            <div class="form-group">
+              <label for="num_faces" class="form-label">Number of Faces / Subjects in the Photo</label>
+              <select name="num_faces" id="num_faces" class="form-control">
+                <option value="1" selected>1 Face (Included in base rate)</option>
+                <option value="2">2 Faces (Couple / +₹700)</option>
+                <option value="3">3 Faces (Family / +₹1,400)</option>
+                <option value="4">4 Faces (Group / +₹2,100)</option>
+              </select>
+            </div>
+
+            <!-- Framing Option -->
+            <div class="form-group">
+              <label class="form-label">Museum Framing & Preservation</label>
+              <div class="options-radio-grid">
+                <label class="radio-card">
+                  <input type="radio" name="frame_type" value="Rolled in Sturdy Art Tube (Unframed)" checked>
+                  <div class="radio-card-content">
+                    <div class="rc-title">Unframed (Art Tube)</div>
+                    <div class="rc-desc">Safely rolled in rigid shockproof PVC tube. Frame locally at your leisure.</div>
+                    <span class="rc-price">₹0</span>
+                  </div>
+                </label>
+
+                <label class="radio-card">
+                  <input type="radio" name="frame_type" value="Sleek Matte Black Wood Frame">
+                  <div class="radio-card-content">
+                    <div class="rc-title">Matte Black Frame</div>
+                    <div class="rc-desc">Clean modern gallery molding with glass front and hanging hardware.</div>
+                    <span class="rc-price">+₹650</span>
+                  </div>
+                </label>
+
+                <label class="radio-card">
+                  <input type="radio" name="frame_type" value="Premium Teak Wood Frame">
+                  <div class="radio-card-content">
+                    <div class="rc-title">Teak Wood Frame</div>
+                    <div class="rc-desc">Rich organic natural wood grain with off-white bevel passe-partout.</div>
+                    <span class="rc-price">+₹950</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Special Instructions -->
+            <div class="form-group">
+              <label for="special_instructions" class="form-label">Special Artist Notes / Message on Artwork</label>
+              <textarea 
+                name="special_instructions" 
+                id="special_instructions" 
+                rows="3" 
+                class="form-control" 
+                placeholder="e.g. Please omit the background and focus on smiles. Add 'Happy 25th Anniversary' in cursive at bottom right."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- STEP 3: RECIPIENT & DELIVERY ADDRESS -->
+          <div class="builder-card">
+            <div class="card-step-badge">STEP 3</div>
+            <h2 class="card-step-title">
+              <i class="fa-solid fa-truck-fast gold-text"></i> Recipient & Delivery Details
+            </h2>
+            <p class="card-step-subtitle">
+              We dispatch via express insured courier with heavy protective packaging to your doorstep.
+            </p>
+
+            <div class="form-row">
+              <div class="form-group col-half">
+                <label for="customer_name" class="form-label">Full Name *</label>
+                <input 
+                  type="text" 
+                  id="customer_name" 
+                  name="customer_name" 
+                  class="form-control" 
+                  value="<%= userDetails.name %>" 
+                  placeholder="Recipient's Name" 
+                  required
+                >
+              </div>
+
+              <div class="form-group col-half">
+                <label for="customer_email" class="form-label">Email Address (For Tax Receipt & Preview) *</label>
+                <input 
+                  type="email" 
+                  id="customer_email" 
+                  name="customer_email" 
+                  class="form-control" 
+                  value="<%= userDetails.email %>" 
+                  placeholder="name@example.com" 
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-half">
+                <label for="customer_phone" class="form-label">Phone / WhatsApp Number *</label>
+                <input 
+                  type="tel" 
+                  id="customer_phone" 
+                  name="customer_phone" 
+                  class="form-control" 
+                  value="<%= userDetails.phone %>" 
+                  placeholder="+91 98765 43210" 
+                  required
+                >
+              </div>
+
+              <div class="form-group col-half">
+                <label for="pincode" class="form-label">Postal Pincode *</label>
+                <input 
+                  type="text" 
+                  id="pincode" 
+                  name="pincode" 
+                  class="form-control" 
+                  value="<%= userDetails.pincode %>" 
+                  placeholder="e.g. 682001" 
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="shipping_address" class="form-label">Detailed Street Address / House / Flat No. *</label>
+              <textarea 
+                id="shipping_address" 
+                name="shipping_address" 
+                rows="2" 
+                class="form-control" 
+                placeholder="Building Name, House Number, Road, Landmark..." 
+                required
+              ><%= userDetails.address %></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-half">
+                <label for="city" class="form-label">City / Town *</label>
+                <input 
+                  type="text" 
+                  id="city" 
+                  name="city" 
+                  class="form-control" 
+                  value="<%= userDetails.city %>" 
+                  placeholder="City" 
+                  required
+                >
+              </div>
+
+              <div class="form-group col-half">
+                <label for="state" class="form-label">State *</label>
+                <input 
+                  type="text" 
+                  id="state" 
+                  name="state" 
+                  class="form-control" 
+                  value="<%= userDetails.state %>" 
+                  placeholder="State" 
+                  required
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: STICKY ORDER & PRICING SUMMARY -->
+        <div class="summary-column">
+          <div class="sticky-summary-card">
+            <h3 class="summary-title">
+              <i class="fa-solid fa-receipt gold-text"></i> Commission Summary
+            </h3>
+
+            <div class="summary-item-preview">
+              <div class="summary-item-badge">CUSTOM PORTRAIT</div>
+              <h4 id="summaryMediumDisplay">Graphite Pencil (Classic Shading)</h4>
+              <p id="summarySizeDisplay" class="text-muted">A3 Dimension (11.7 x 16.5 in)</p>
+              <span id="summaryFacesDisplay" class="badge-faces">1 Face Subject</span>
+              <span id="summaryFrameDisplay" class="badge-frame">Unframed Art Tube</span>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-breakdown">
+              <div class="summary-row">
+                <span>Base Portrait Drawing:</span>
+                <span id="summaryBasePrice" class="font-semibold">₹2,800</span>
+              </div>
+              <div class="summary-row" id="summaryExtraFacesRow" style="display: none;">
+                <span>Additional Faces:</span>
+                <span id="summaryFacesPrice" class="font-semibold">+₹0</span>
+              </div>
+              <div class="summary-row" id="summaryFrameRow" style="display: none;">
+                <span>Protective Framing:</span>
+                <span id="summaryFramePrice" class="font-semibold">+₹0</span>
+              </div>
+              <div class="summary-row">
+                <span>Express Insured Shipping:</span>
+                <span id="summaryShippingPrice" class="text-success font-semibold">FREE</span>
+              </div>
+              <div class="summary-row">
+                <span>Applicable GST (5%):</span>
+                <span id="summaryTaxPrice" class="font-semibold">₹140</span>
+              </div>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-total-row">
+              <div>
+                <span class="total-label">Grand Total:</span>
+                <small class="total-subtext">All taxes & packaging included</small>
+              </div>
+              <div class="total-amount-display">
+                <span id="summaryTotalPrice">₹2,940</span>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-gold btn-block btn-lg pulse-cta btn-proceed-payment">
+              <i class="fa-solid fa-arrow-right"></i> Proceed to Payment & Details
+            </button>
+
+            <div class="trust-guarantees">
+              <div class="trust-pill">
+                <i class="fa-solid fa-shield-check gold-text"></i>
+                <span>100% Genuine Handcrafted Guarantee</span>
+              </div>
+              <div class="trust-pill">
+                <i class="fa-solid fa-file-invoice gold-text"></i>
+                <span>Official PDF Tax Receipt Provided</span>
+              </div>
+              <div class="trust-pill">
+                <i class="fa-solid fa-box gold-text"></i>
+                <span>Zero-Damage Packaging Policy</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script src="/js/order.js"></script>
+
+<%- include('../partials/footer') %>

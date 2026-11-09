@@ -1,0 +1,145 @@
+<%- include('../partials/header') %>
+  <%- include('../partials/navbar') %>
+
+    <main class="main-content admin-artworks-page">
+      <div class="container admin-container">
+        <div class="admin-header-row">
+          <div>
+            <a href="/admin/dashboard" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+            <h1 class="admin-page-title"><i class="fa-solid fa-palette gold-text"></i> Portfolio & Gallery Manager</h1>
+            <p class="admin-page-subtitle">Add new hand-drawn pencil sketches to your showcase gallery, manage prices
+              and categories.</p>
+          </div>
+          <a href="/#gallery" class="btn btn-outline-gold btn-sm" target="_blank">
+            <i class="fa-solid fa-eye"></i> View Live Gallery
+          </a>
+        </div>
+
+        <%- include('../partials/alerts') %>
+
+          <div class="admin-grid-two-col">
+            <!-- FORM: ADD NEW ARTWORK -->
+            <div class="admin-form-col">
+              <div class="admin-card">
+                <h2 class="admin-card-title">
+                  <i class="fa-solid fa-cloud-arrow-up gold-text"></i> Upload New Portrait to Gallery
+                </h2>
+
+                <form action="/admin/artworks/add" method="POST" enctype="multipart/form-data"
+                  class="admin-artwork-form">
+                  <div class="form-group">
+                    <label for="title" class="form-label">Artwork Title *</label>
+                    <input type="text" id="title" name="title" class="form-control"
+                      placeholder="e.g. Vintage Chiaroscuro Portrait" required>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group col-half">
+                      <label for="category" class="form-label">Category *</label>
+                      <select id="category" name="category" class="form-control" required>
+                        <option value="Hyper-Realistic">Hyper-Realistic</option>
+                        <option value="Couple & Wedding">Couple & Wedding</option>
+                        <option value="Celebrity & Icons">Celebrity & Icons</option>
+                        <option value="Pet Portraits">Pet Portraits</option>
+                        <option value="Wildlife & Nature">Wildlife & Nature</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group col-half">
+                      <label for="price" class="form-label">Commission Base Price (INR) *</label>
+                      <input type="number" id="price" name="price" class="form-control" placeholder="3200" required>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group col-half">
+                      <label for="medium" class="form-label">Medium Used</label>
+                      <input type="text" id="medium" name="medium" class="form-control"
+                        placeholder="Staedtler Graphite & Carbon" value="Graphite & Charcoal Blend">
+                    </div>
+
+                    <div class="form-group col-half">
+                      <label for="size" class="form-label">Paper Dimension</label>
+                      <select id="size" name="size" class="form-control">
+                        <option value="A4 (8.3 x 11.7 in)">A4 (8.3 x 11.7 in)</option>
+                        <option value="A3 (11.7 x 16.5 in)" selected>A3 (11.7 x 16.5 in)</option>
+                        <option value="A2 (16.5 x 23.4 in)">A2 (16.5 x 23.4 in)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="description" class="form-label">Artistic Description / Technique Notes</label>
+                    <textarea id="description" name="description" rows="3" class="form-control"
+                      placeholder="Describe the shading technique, hours invested, paper grade..."></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="artwork_image" class="form-label">Artwork Photograph / Scan *</label>
+                    <input type="file" id="artwork_image" name="artwork_image" class="form-control" accept="image/*"
+                      required>
+                    <small class="form-hint">Upload high-res JPG, PNG or WEBP scan of the portrait</small>
+                  </div>
+
+                  <div class="form-group form-check">
+                    <label class="custom-checkbox">
+                      <input type="checkbox" name="featured" value="1" checked>
+                      <span>Feature in Hero / Spotlight section</span>
+                    </label>
+                  </div>
+
+                  <button type="submit" class="btn btn-gold btn-block">
+                    <i class="fa-solid fa-plus"></i> Publish to Showcase Gallery
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- EXISTING GALLERY LIST -->
+            <div class="admin-list-col">
+              <div class="admin-card">
+                <h2 class="admin-card-title">
+                  <i class="fa-solid fa-images gold-text"></i> Live Portfolio Pieces (<%= artworks.length %>)
+                </h2>
+
+                <div class="admin-artworks-scroll">
+                  <% if (artworks && artworks.length> 0) { %>
+                    <% artworks.forEach(art=> { %>
+                      <div class="admin-art-item">
+                        <img src="<%= art.image_url %>" alt="<%= art.title %>" class="admin-art-thumb">
+                        <div class="admin-art-details">
+                          <h4>
+                            <%= art.title %>
+                          </h4>
+                          <p class="text-gold font-semibold">
+                            <%= art.category %> • ₹<%= Number(art.price).toLocaleString('en-IN') %>
+                          </p>
+                          <small class="text-muted">
+                            <%= art.medium %> | <%= art.size %>
+                          </small>
+                        </div>
+                        <div class="admin-art-actions" style="display: flex; gap: 8px; align-items: center;">
+                          <a href="/admin/artworks/edit/<%= art._id %>" class="btn btn-sm btn-outline-gold" title="Edit All Artwork Details" style="padding: 6px 12px; font-size: 12px;">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                          </a>
+                          <form action="/admin/artworks/delete" method="POST"
+                            onsubmit="return confirm('Are you sure you want to remove this portrait from your showcase?');" style="margin: 0;">
+                            <input type="hidden" name="id" value="<%= art._id %>">
+                            <button type="submit" class="btn-delete" title="Delete Artwork">
+                              <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                      <% }) %>
+                        <% } else { %>
+                          <p class="text-muted">No artworks found in portfolio.</p>
+                          <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+      </div>
+    </main>
+
+    <%- include('../partials/footer') %>

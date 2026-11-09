@@ -1,0 +1,80 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="main-content auth-page">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-icon-circle">
+          <i class="fa-solid fa-user-lock"></i>
+        </div>
+        <h2 class="auth-title">Welcome Back</h2>
+        <p class="auth-subtitle">Sign in to track your portrait commissions & view receipts</p>
+      </div>
+
+      <%- include('../partials/alerts') %>
+
+      <form action="/auth/login" method="POST" class="auth-form">
+        <input type="hidden" name="returnTo" value="<%= typeof returnTo !== 'undefined' ? returnTo : '' %>">
+
+        <div class="form-group">
+          <label for="email" class="form-label">
+            <i class="fa-solid fa-envelope"></i> Email Address
+          </label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="form-control" 
+            placeholder="you@example.com" 
+            required 
+            autofocus
+          >
+        </div>
+
+        <div class="form-group">
+          <div class="label-row">
+            <label for="password" class="form-label">
+              <i class="fa-solid fa-key"></i> Password
+            </label>
+          </div>
+          <div class="password-input-wrap">
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-control" 
+              placeholder="Enter your password" 
+              required
+            >
+            <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('password')">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-gold btn-block btn-auth-submit">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In to Account
+        </button>
+      </form>
+
+      <div class="auth-footer-links">
+        <p>Don't have an account yet? <a href="/auth/register" class="text-gold font-bold">Create Account</a></p>
+        <div class="admin-login-hint">
+          <a href="/auth/admin-login" class="admin-badge-link">
+            <i class="fa-solid fa-shield-halved"></i> Artist & Admin Portal Sign In
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+function togglePasswordVisibility(id) {
+  const input = document.getElementById(id);
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+</script>
+
+<%- include('../partials/footer') %>

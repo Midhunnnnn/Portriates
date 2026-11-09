@@ -1,0 +1,112 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="main-content auth-page">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-icon-circle">
+          <i class="fa-solid fa-envelope-circle-check"></i>
+        </div>
+        <h2 class="auth-title">Verify Your Email</h2>
+        <p class="auth-subtitle">A 6-digit verification code has been sent to your email</p>
+      </div>
+
+      <%- include('../partials/alerts') %>
+
+      <!-- OTP Entry Form -->
+      <form action="/auth/verify-otp" method="POST" class="auth-form" id="otpForm">
+        <div class="form-group">
+          <label for="otp" class="form-label text-center" style="display: block; font-size: 14px;">
+            Enter 6-Digit Verification Code
+          </label>
+          <input 
+            type="text" 
+            id="otp" 
+            name="otp" 
+            class="form-control otp-input-field" 
+            placeholder="••••••" 
+            maxlength="6" 
+            pattern="[0-9]{6}"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            required 
+            autofocus
+            style="text-align: center; font-size: 28px; letter-spacing: 12px; font-family: monospace; font-weight: 700; color: #f3d068; background: #0f1217; padding: 14px 10px;"
+          >
+          <small class="form-hint text-center" style="display: block; margin-top: 8px;">
+            <i class="fa-regular fa-clock text-warning"></i> Code expires in 10 minutes
+          </small>
+        </div>
+
+        <button type="submit" class="btn btn-gold btn-block btn-auth-submit" id="btnVerifyOtp">
+          <i class="fa-solid fa-shield-check"></i> Verify & Complete Registration
+        </button>
+      </form>
+
+      <!-- Resend Code Section -->
+      <div class="resend-code-section text-center" style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-subtle);">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
+          Didn't receive the email? Check your spam folder or request a new code.
+        </p>
+
+        <form action="/auth/resend-otp" method="POST" id="resendForm" style="display: inline-block;">
+          <button type="submit" class="btn btn-sm btn-outline-light" id="btnResendOtp">
+            <i class="fa-solid fa-rotate-right"></i> Resend Verification Code
+          </button>
+        </form>
+        <span id="countdownTimer" style="display: none; font-size: 12px; color: var(--text-dim); margin-left: 8px;"></span>
+      </div>
+
+      <div class="auth-footer-links">
+        <a href="/auth/register" class="text-muted-link"><i class="fa-solid fa-arrow-left"></i> Change email address</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const otpInput = document.getElementById('otp');
+  const resendBtn = document.getElementById('btnResendOtp');
+  const countdownSpan = document.getElementById('countdownTimer');
+
+  // Auto-focus and filter non-digit characters
+  if (otpInput) {
+    otpInput.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/\D/g, '').substring(0, 6);
+    });
+  }
+
+  // 60-Second Cooldown for Resend
+  let timeLeft = 60;
+  let timerInterval = null;
+
+  function startCooldown() {
+    if (!resendBtn) return;
+    resendBtn.disabled = true;
+    resendBtn.style.opacity = '0.5';
+    resendBtn.style.cursor = 'not-allowed';
+    countdownSpan.style.display = 'inline';
+
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      countdownSpan.textContent = `(Wait ${timeLeft}s)`;
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        resendBtn.disabled = false;
+        resendBtn.style.opacity = '1';
+        resendBtn.style.cursor = 'pointer';
+        countdownSpan.style.display = 'none';
+        timeLeft = 60;
+      }
+    }, 1000);
+  }
+
+  // Start initial timer on page load
+  startCooldown();
+});
+</script>
+
+<%- include('../partials/footer') %>
+

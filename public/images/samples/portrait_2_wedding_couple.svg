@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000">
+    <defs>
+      <radialGradient id="vignette" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+        <stop offset="60%" stop-color="#232323" stop-opacity="0" />
+        <stop offset="100%" stop-color="#050505" stop-opacity="0.85" />
+      </radialGradient>
+      <linearGradient id="paperGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#181818" />
+        <stop offset="50%" stop-color="#202020" />
+        <stop offset="100%" stop-color="#141414" />
+      </linearGradient>
+      <filter id="pencilNoise" x="0%" y="0%" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" result="noise" />
+        <feColorMatrix type="matrix" values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 0.12 0" />
+        <feBlend in="SourceGraphic" in2="noise" mode="multiply" />
+      </filter>
+    </defs>
+    
+    <!-- Fine Textured Art Paper Background -->
+    <rect width="800" height="1000" fill="url(#paperGrad)" />
+    <rect width="800" height="1000" filter="url(#pencilNoise)" opacity="0.6" />
+
+    <!-- Outer Sketch Border & Passe-partout Frame -->
+    <rect x="40" y="40" width="720" height="920" fill="none" stroke="#333333" stroke-width="1.5" />
+    <rect x="50" y="50" width="700" height="900" fill="none" stroke="#222222" stroke-width="0.8" />
+    
+    <!-- Hand Drawn Hatching Crosslines (Pencil strokes effect) -->
+    <g stroke="#ffffff" stroke-opacity="0.06" stroke-width="1.2">
+      <path d="M 120 180 L 680 740 M 140 160 L 700 720 M 160 140 L 720 700" />
+      <path d="M 680 180 L 120 740 M 660 160 L 100 720 M 700 200 L 140 760" />
+      <path d="M 200 100 L 600 900 M 250 100 L 650 900" />
+    </g>
+
+    <!-- Detailed Sketch Portrait Silhouettes and Shading -->
+    <!-- Head / Hair Flow -->
+    <path d="M 400 220 C 310 220, 260 300, 260 410 C 260 520, 290 620, 400 660 C 510 620, 540 520, 540 410 C 540 300, 490 220, 400 220 Z" 
+          fill="#1c1c1c" stroke="#444444" stroke-width="2" />
+    
+    <!-- Shading Gradients / Layers -->
+    <path d="M 320 280 Q 400 250 480 280 Q 520 360 490 470 Q 400 580 310 470 Z" 
+          fill="#252525" stroke="#555555" stroke-dasharray="2,3" stroke-width="1.5" />
+
+    <!-- Detailed Eye Curves -->
+    <path d="M 330 380 Q 360 365 390 380 Q 360 395 330 380 Z" fill="#111" stroke="#d4af37" stroke-width="1.8" />
+    <circle cx="360" cy="380" r="8" fill="#ffffff" opacity="0.8" />
+    <circle cx="361" cy="379" r="3" fill="#111111" />
+    <path d="M 320 360 Q 360 345 400 365" fill="none" stroke="#777" stroke-width="2.5" />
+
+    <path d="M 410 380 Q 440 365 470 380 Q 440 395 410 380 Z" fill="#111" stroke="#d4af37" stroke-width="1.8" />
+    <circle cx="440" cy="380" r="8" fill="#ffffff" opacity="0.8" />
+    <circle cx="441" cy="379" r="3" fill="#111111" />
+    <path d="M 400 365 Q 440 345 480 360" fill="none" stroke="#777" stroke-width="2.5" />
+
+    <!-- Nose Bridge & Contour -->
+    <path d="M 400 380 L 395 445 Q 400 455 415 450" fill="none" stroke="#666" stroke-width="2" />
+
+    <!-- Lips with Graphite Shading -->
+    <path d="M 365 490 Q 400 480 435 490 Q 400 515 365 490 Z" fill="#222" stroke="#888" stroke-width="1.5" />
+    <path d="M 370 490 Q 400 496 430 490" fill="none" stroke="#aaa" stroke-width="1" />
+
+    <!-- Charcoal Shading Layers -->
+    <g stroke="#ffffff" stroke-opacity="0.12" stroke-width="1">
+      <line x1="280" y1="420" x2="340" y2="470" />
+      <line x1="285" y1="430" x2="345" y2="480" />
+      <line x1="290" y1="440" x2="350" y2="490" />
+      <line x1="460" y1="420" x2="520" y2="470" />
+      <line x1="455" y1="430" x2="515" y2="480" />
+    </g>
+
+    <!-- Shoulders / Torso Gestural Strokes -->
+    <path d="M 280 660 C 220 700, 150 780, 130 900 L 670 900 C 650 780, 580 700, 520 660 Z" 
+          fill="#171717" stroke="#3a3a3a" stroke-width="2" />
+
+    <!-- Artist Signature & Studio Seal -->
+    <g transform="translate(540, 850)">
+      <text font-family="'Brush Script MT', 'Dancing Script', cursive, serif" font-size="28" fill="#d4af37" font-style="italic">Midhun R.S.</text>
+      <text y="22" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#777" letter-spacing="2">STUDIO ARCHIVE</text>
+    </g>
+
+    <!-- Vignette Shadow Overlay -->
+    <rect width="800" height="1000" fill="url(#vignette)" pointer-events="none" />
+
+    <!-- Artwork Caption Plate -->
+    <rect x="70" y="70" width="300" height="60" rx="4" fill="#0d0d0d" fill-opacity="0.85" stroke="#333" stroke-width="1" />
+    <text x="85" y="94" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" letter-spacing="1">ETERNAL VOWS - WEDDING DUO</text>
+    <text x="85" y="114" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#d4af37">Charcoal & Graphite on Brustro 250 GSM • A3 (11.7 x 16.5 in)</text>
+  </svg>

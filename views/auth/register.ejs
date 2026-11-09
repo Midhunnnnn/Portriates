@@ -1,0 +1,161 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="main-content auth-page">
+  <div class="auth-container auth-wide-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-icon-circle">
+          <i class="fa-solid fa-user-plus"></i>
+        </div>
+        <h2 class="auth-title">Create Your Client Account</h2>
+        <p class="auth-subtitle">Register to commission custom pencil portraits, track progress & access tax invoices</p>
+      </div>
+
+      <%- include('../partials/alerts') %>
+
+      <form action="/auth/register" method="POST" class="auth-form">
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="name" class="form-label">
+              <i class="fa-solid fa-user"></i> Full Name *
+            </label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              class="form-control" 
+              placeholder="e.g. Rahul Sharma" 
+              value="<%= typeof formData !== 'undefined' && formData.name ? formData.name : '' %>"
+              required 
+              autofocus
+            >
+          </div>
+
+          <div class="form-group col-half">
+            <label for="email" class="form-label">
+              <i class="fa-solid fa-envelope"></i> Email Address *
+            </label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              class="form-control" 
+              placeholder="e.g. rahul@example.com" 
+              value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="password" class="form-label">
+              <i class="fa-solid fa-lock"></i> Create Password * (min 6 chars)
+            </label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-control" 
+              placeholder="At least 6 characters" 
+              required
+            >
+          </div>
+
+          <div class="form-group col-half">
+            <label for="confirmPassword" class="form-label">
+              <i class="fa-solid fa-lock-open"></i> Confirm Password *
+            </label>
+            <input 
+              type="password" 
+              id="confirmPassword" 
+              name="confirmPassword" 
+              class="form-control" 
+              placeholder="Re-type your password" 
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-section-title">
+          <i class="fa-solid fa-location-dot"></i> Default Shipping Details (For Portrait Delivery)
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="phone" class="form-label">Phone / WhatsApp Number</label>
+            <input 
+              type="tel" 
+              id="phone" 
+              name="phone" 
+              class="form-control" 
+              placeholder="+91 98765 43210" 
+              value="<%= typeof formData !== 'undefined' && formData.phone ? formData.phone : '' %>"
+            >
+          </div>
+
+          <div class="form-group col-half">
+            <label for="pincode" class="form-label">Postal Pincode</label>
+            <input 
+              type="text" 
+              id="pincode" 
+              name="pincode" 
+              class="form-control" 
+              placeholder="e.g. 682001" 
+              value="<%= typeof formData !== 'undefined' && formData.pincode ? formData.pincode : '' %>"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="address" class="form-label">Street Address / House Name</label>
+          <input 
+            type="text" 
+            id="address" 
+            name="address" 
+            class="form-control" 
+            placeholder="Flat 4B, Greenwood Apts, Marine Drive" 
+            value="<%= typeof formData !== 'undefined' && formData.address ? formData.address : '' %>"
+          >
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="city" class="form-label">City</label>
+            <input 
+              type="text" 
+              id="city" 
+              name="city" 
+              class="form-control" 
+              placeholder="e.g. Kochi" 
+              value="<%= typeof formData !== 'undefined' && formData.city ? formData.city : '' %>"
+            >
+          </div>
+
+          <div class="form-group col-half">
+            <label for="state" class="form-label">State</label>
+            <input 
+              type="text" 
+              id="state" 
+              name="state" 
+              class="form-control" 
+              placeholder="e.g. Kerala" 
+              value="<%= typeof formData !== 'undefined' && formData.state ? formData.state : '' %>"
+            >
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-gold btn-block btn-auth-submit">
+          <i class="fa-solid fa-user-check"></i> Register & Continue
+        </button>
+      </form>
+
+      <div class="auth-footer-links">
+        <p>Already have an account? <a href="/auth/login" class="text-gold font-bold">Sign In here</a></p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

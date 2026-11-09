@@ -1,0 +1,345 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="main-content payment-checkout-page">
+  <div class="container">
+    <div class="checkout-header">
+      <div class="checkout-badge">SECURE 256-BIT ENCRYPTED CHECKOUT</div>
+      <h1 class="checkout-title">Review Details & Complete Payment</h1>
+      <p class="checkout-subtitle">Order #<%= order.order_number %> • Verify your delivery address and select a payment method</p>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <form action="/payment/process/<%= order.order_number %>" method="POST" id="checkoutPaymentForm">
+      <div class="checkout-grid">
+        <!-- LEFT COLUMN: ADDRESS & RECIPIENT DETAILS UPDATE -->
+        <div class="checkout-details-column">
+          <div class="checkout-card">
+            <div class="card-header-row">
+              <h2 class="checkout-card-title">
+                <i class="fa-solid fa-location-dot gold-text"></i> Verify & Update Delivery Address
+              </h2>
+              <span class="badge-address-edit"><i class="fa-solid fa-pen"></i> Editable</span>
+            </div>
+            <p class="checkout-card-subtitle">
+              Please double-check the recipient and address information below. You can update any field before completing payment.
+            </p>
+
+            <div class="form-row">
+              <div class="form-group col-half">
+                <label for="customer_name" class="form-label">Recipient Full Name *</label>
+                <input 
+                  type="text" 
+                  id="customer_name" 
+                  name="customer_name" 
+                  class="form-control" 
+                  value="<%= order.customer_name %>" 
+                  required
+                >
+              </div>
+
+              <div class="form-group col-half">
+                <label for="customer_phone" class="form-label">Phone / WhatsApp Number *</label>
+                <input 
+                  type="tel" 
+                  id="customer_phone" 
+                  name="customer_phone" 
+                  class="form-control" 
+                  value="<%= order.customer_phone %>" 
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="shipping_address" class="form-label">Street Address / House / Flat No. *</label>
+              <textarea 
+                id="shipping_address" 
+                name="shipping_address" 
+                rows="2" 
+                class="form-control" 
+                required
+              ><%= order.shipping_address %></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-half">
+                <label for="city" class="form-label">City *</label>
+                <input 
+                  type="text" 
+                  id="city" 
+                  name="city" 
+                  class="form-control" 
+                  value="<%= order.city %>" 
+                  required
+                >
+              </div>
+
+              <div class="form-group col-half">
+                <label for="state" class="form-label">State *</label>
+                <input 
+                  type="text" 
+                  id="state" 
+                  name="state" 
+                  class="form-control" 
+                  value="<%= order.state %>" 
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-half">
+                <label for="pincode" class="form-label">Postal Pincode *</label>
+                <input 
+                  type="text" 
+                  id="pincode" 
+                  name="pincode" 
+                  class="form-control" 
+                  value="<%= order.pincode %>" 
+                  required
+                >
+              </div>
+
+              <div class="form-group col-half">
+                <label class="form-label">Registered Client Email</label>
+                <input 
+                  type="email" 
+                  class="form-control" 
+                  value="<%= order.customer_email %>" 
+                  disabled
+                  style="opacity: 0.7;"
+                >
+                <small class="form-hint">Tax invoice & sketch updates sent here</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAYMENT METHODS ACCORDION -->
+          <div class="checkout-card">
+            <h2 class="checkout-card-title">
+              <i class="fa-solid fa-credit-card gold-text"></i> Select Payment Method
+            </h2>
+            <p class="checkout-card-subtitle">
+              Choose your preferred payment mode. Transactions are verified and authenticated securely.
+            </p>
+
+            <!-- Payment Method Tabs / Radios -->
+            <div class="payment-tabs-group">
+              
+              <!-- Option 1: Instant UPI -->
+              <div class="payment-method-option active" data-method="UPI">
+                <label class="pm-header">
+                  <input type="radio" name="payment_method" value="UPI (Google Pay / PhonePe / Paytm)" checked>
+                  <div class="pm-info">
+                    <span class="pm-name"><i class="fa-solid fa-mobile-screen gold-text"></i> Instant UPI (GPay, PhonePe, Paytm, BHIM)</span>
+                    <span class="pm-tag">Zero Gateway Fee</span>
+                  </div>
+                </label>
+
+                <div class="pm-body" id="upiBody">
+                  <div class="upi-box">
+                    <div class="upi-qr-area">
+                      <div class="qr-code-placeholder">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <small>Scan to Pay ₹<%= order.total_amount.toLocaleString('en-IN') %></small>
+                      </div>
+                      <div class="upi-vpa-details">
+                        <strong>Studio VPA:</strong> <code>midhun.portraits@okaxis</code>
+                        <p class="upi-instruction">Scan with any UPI app on your phone, or enter your UPI ID below for a collect request:</p>
+                        <div class="upi-input-row">
+                          <input type="text" name="upi_id" placeholder="yourname@okhdfcbank" class="form-control">
+                          <button type="button" class="btn btn-sm btn-outline-gold" onclick="alert('UPI Collect Request simulated! Click Pay to confirm.')">Verify VPA</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Option 2: Credit / Debit Card -->
+              <div class="payment-method-option" data-method="Card">
+                <label class="pm-header">
+                  <input type="radio" name="payment_method" value="Credit/Debit Card (Visa, MC, RuPay)">
+                  <div class="pm-info">
+                    <span class="pm-name"><i class="fa-regular fa-credit-card gold-text"></i> Credit or Debit Card</span>
+                    <span class="pm-tag">Visa / Mastercard / RuPay</span>
+                  </div>
+                </label>
+
+                <div class="pm-body" id="cardBody" style="display: none;">
+                  <div class="card-form-grid">
+                    <div class="form-group">
+                      <label class="form-label">Card Number</label>
+                      <div class="card-input-wrap">
+                        <input type="text" name="card_number" class="form-control" placeholder="4532 •••• •••• 8892" maxlength="19">
+                        <i class="fa-solid fa-lock card-lock-icon"></i>
+                      </div>
+                    </div>
+
+                    <div class="form-row">
+                      <div class="form-group col-half">
+                        <label class="form-label">Expiry (MM/YY)</label>
+                        <input type="text" placeholder="12/28" maxlength="5" class="form-control">
+                      </div>
+                      <div class="form-group col-half">
+                        <label class="form-label">CVV / CVC</label>
+                        <input type="password" placeholder="•••" maxlength="4" class="form-control">
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Cardholder Name</label>
+                      <input type="text" placeholder="Name as printed on card" class="form-control" value="<%= order.customer_name %>">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Option 3: Net Banking -->
+              <div class="payment-method-option" data-method="NetBanking">
+                <label class="pm-header">
+                  <input type="radio" name="payment_method" value="Net Banking (All Indian Banks)">
+                  <div class="pm-info">
+                    <span class="pm-name"><i class="fa-solid fa-building-columns gold-text"></i> Net Banking</span>
+                    <span class="pm-tag">All Major Banks</span>
+                  </div>
+                </label>
+
+                <div class="pm-body" id="netbankingBody" style="display: none;">
+                  <div class="form-group">
+                    <label class="form-label">Select Your Bank</label>
+                    <select class="form-control">
+                      <option>HDFC Bank</option>
+                      <option>State Bank of India (SBI)</option>
+                      <option>ICICI Bank</option>
+                      <option>Axis Bank</option>
+                      <option>Kotak Mahindra Bank</option>
+                      <option>Federal Bank</option>
+                      <option>Punjab National Bank</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Option 4: COD / Pay on Confirmation -->
+              <div class="payment-method-option" data-method="COD">
+                <label class="pm-header">
+                  <input type="radio" name="payment_method" value="Cash on Delivery (Pay on Confirmation)">
+                  <div class="pm-info">
+                    <span class="pm-name"><i class="fa-solid fa-hand-holding-dollar gold-text"></i> Pay on Confirmation (COD)</span>
+                    <span class="pm-tag">Courier Verification</span>
+                  </div>
+                </label>
+
+                <div class="pm-body" id="codBody" style="display: none;">
+                  <div class="cod-notice">
+                    <i class="fa-solid fa-circle-check text-success"></i>
+                    <p>You can pay via Cash or UPI when the courier delivers your framed/tubed portrait at your door. You will still receive an instant official PDF invoice.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: ORDER REVIEW & BILLING SUMMARY -->
+        <div class="checkout-summary-column">
+          <div class="checkout-summary-card">
+            <h3 class="summary-title">
+              <i class="fa-solid fa-file-invoice-dollar gold-text"></i> Order Billing Summary
+            </h3>
+
+            <!-- Commissioned Portrait Preview Thumbnail -->
+            <div class="checkout-ref-box">
+              <img src="<%= order.reference_photo %>" alt="Reference Photo" class="checkout-thumb-img">
+              <div class="checkout-thumb-details">
+                <span class="ref-label">Commission Reference</span>
+                <h4><%= order.portrait_medium %></h4>
+                <p><%= order.portrait_size %> • <%= order.num_faces %> Face(s)</p>
+                <small class="text-gold"><%= order.frame_type %></small>
+              </div>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <!-- Itemized Pricing Breakdown -->
+            <div class="summary-breakdown">
+              <div class="summary-row">
+                <span>Hand-Drawn Portrait Sketch:</span>
+                <span>₹<%= Number(order.base_price).toLocaleString('en-IN') %></span>
+              </div>
+
+              <% if (order.faces_extra > 0) { %>
+                <div class="summary-row">
+                  <span>Additional Faces (<%= order.num_faces - 1 %> extra):</span>
+                  <span>+₹<%= Number(order.faces_extra).toLocaleString('en-IN') %></span>
+                </div>
+              <% } %>
+
+              <% if (order.frame_price > 0) { %>
+                <div class="summary-row">
+                  <span>Custom Frame (<%= order.frame_type %>):</span>
+                  <span>+₹<%= Number(order.frame_price).toLocaleString('en-IN') %></span>
+                </div>
+              <% } else { %>
+                <div class="summary-row">
+                  <span>Packaging (Art Tube):</span>
+                  <span class="text-success">Free</span>
+                </div>
+              <% } %>
+
+              <div class="summary-row">
+                <span>GST (5% Arts & Crafts):</span>
+                <span>₹<%= Number(order.tax_amount).toLocaleString('en-IN') %></span>
+              </div>
+
+              <div class="summary-row">
+                <span>Express Insured Courier:</span>
+                <span class="<%= order.shipping_charge > 0 ? '' : 'text-success' %>">
+                  <%= order.shipping_charge > 0 ? '₹' + order.shipping_charge : 'FREE' %>
+                </span>
+              </div>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-total-row">
+              <div>
+                <span class="total-label">Grand Total Due:</span>
+                <small class="total-subtext">Includes taxes & protective packaging</small>
+              </div>
+              <div class="total-amount-display">
+                <span class="amount-accent">₹<%= Number(order.total_amount).toLocaleString('en-IN') %></span>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-gold btn-block btn-lg pulse-cta btn-pay-now" id="btnPayNow">
+              <i class="fa-solid fa-lock"></i> Authorize & Pay ₹<%= Number(order.total_amount).toLocaleString('en-IN') %>
+            </button>
+
+            <div class="checkout-trust-box">
+              <div class="trust-item">
+                <i class="fa-solid fa-shield-halved text-gold"></i>
+                <span>Bank-Grade 256-Bit SSL Protection</span>
+              </div>
+              <div class="trust-item">
+                <i class="fa-solid fa-envelope-circle-check text-gold"></i>
+                <span>Instant PDF Receipt sent to your Email</span>
+              </div>
+              <div class="trust-item">
+                <i class="fa-solid fa-arrows-rotate text-gold"></i>
+                <span>100% Artist Satisfaction Guarantee</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script src="/js/payment.js"></script>
+
+<%- include('../partials/footer') %>

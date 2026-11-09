@@ -1,0 +1,229 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="main-content billing-receipt-page">
+  <div class="container invoice-container">
+    <%- include('../partials/alerts') %>
+
+    <!-- ACTION BUTTONS TOOLBAR -->
+    <div class="invoice-toolbar-row no-print">
+      <div class="toolbar-left">
+        <a href="/" class="btn btn-secondary btn-sm">
+          <i class="fa-solid fa-arrow-left"></i> Studio Home
+        </a>
+        <a href="/orders/my-orders" class="btn btn-secondary btn-sm">
+          <i class="fa-solid fa-list-check"></i> My Commissions
+        </a>
+      </div>
+
+      <div class="toolbar-right">
+        <!-- Download PDF Receipt Button -->
+        <a href="/billing/receipt/<%= order.order_number %>/download-pdf" class="btn btn-gold btn-sm" target="_blank">
+          <i class="fa-solid fa-file-pdf"></i> Download Official PDF Receipt
+        </a>
+        <button class="btn btn-outline-light btn-sm" onclick="window.print()">
+          <i class="fa-solid fa-print"></i> Print Invoice
+        </button>
+        <form action="/billing/receipt/<%= order.order_number %>/resend-email" method="POST" style="display: inline-block;">
+          <button type="submit" class="btn btn-secondary btn-sm" title="Resend email invoice to <%= order.customer_email %>">
+            <i class="fa-solid fa-envelope"></i> Resend to Email
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- PRINTABLE INVOICE / RECEIPT DOCUMENT -->
+    <div class="invoice-paper" id="invoicePaper">
+      <!-- Studio Header -->
+      <div class="invoice-header">
+        <div class="invoice-brand">
+          <div class="inv-logo-icon">
+            <i class="fa-solid fa-pen-nib"></i>
+          </div>
+          <div>
+            <h1 class="inv-studio-name">MIDHUN PENCIL PORTRAITS</h1>
+            <p class="inv-studio-sub">Handcrafted Fine Art Studio • Graphite & Charcoal Realism</p>
+            <p class="inv-studio-contact">Email: midhunrs727@gmail.com | Web: www.midhunportraits.art | Ernakulam, Kerala</p>
+          </div>
+        </div>
+
+        <div class="invoice-meta-badge">
+          <div class="badge-title">OFFICIAL TAX INVOICE</div>
+          <div class="badge-inv-num">#<%= order.order_number %></div>
+          <div class="badge-date">Date: <%= new Date(order.created_at || Date.now()).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %></div>
+        </div>
+      </div>
+
+      <!-- Payment & Commission Status Strip -->
+      <div class="invoice-status-strip">
+        <div class="status-col">
+          <span class="label">Payment Status:</span>
+          <span class="status-pill status-paid">
+            <i class="fa-solid fa-circle-check"></i> <%= (order.payment_status || 'Paid').toUpperCase() %>
+          </span>
+        </div>
+
+        <div class="status-col">
+          <span class="label">Commission Status:</span>
+          <span class="status-pill status-progress">
+            <i class="fa-solid fa-pencil"></i> <%= (order.order_status || 'In Progress').toUpperCase() %>
+          </span>
+        </div>
+
+        <div class="status-col">
+          <span class="label">Payment Method:</span>
+          <strong class="val"><%= order.payment_method || 'Online Payment' %></strong>
+        </div>
+
+        <div class="status-col">
+          <span class="label">Transaction Reference:</span>
+          <code class="val-code"><%= order.transaction_id || 'TXN-DIRECT' %></code>
+        </div>
+      </div>
+
+      <!-- Client & Delivery Details Grid -->
+      <div class="invoice-addresses-grid">
+        <div class="address-box">
+          <h3 class="box-title"><i class="fa-solid fa-user"></i> Billed To (Client)</h3>
+          <p class="client-name"><strong><%= order.customer_name %></strong></p>
+          <p class="client-info"><i class="fa-solid fa-envelope"></i> <%= order.customer_email %></p>
+          <p class="client-info"><i class="fa-solid fa-phone"></i> <%= order.customer_phone %></p>
+        </div>
+
+        <div class="address-box">
+          <h3 class="box-title"><i class="fa-solid fa-truck-fast"></i> Delivery Address</h3>
+          <p class="client-name"><strong><%= order.customer_name %></strong></p>
+          <p class="client-info"><%= order.shipping_address %></p>
+          <p class="client-info"><%= order.city %>, <%= order.state %> - <%= order.pincode %></p>
+        </div>
+      </div>
+
+      <!-- Reference Photo Preview Box -->
+      <div class="invoice-ref-bar">
+        <div class="ref-thumb-mini">
+          <img src="<%= order.reference_photo %>" alt="Client Reference Photo" class="thumb-img">
+        </div>
+        <div class="ref-meta">
+          <strong>Commissioned Subject:</strong> <%= order.num_faces %> Face(s) Hand-Drawn Portrait
+          <p>Medium: <em><%= order.portrait_medium %></em> | Size: <em><%= order.portrait_size %></em></p>
+          <% if (order.special_instructions) { %>
+            <small class="instructions-snippet"><strong>Artist Notes:</strong> "<%= order.special_instructions %>"</small>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- EXACT ITEMIZED BILLING TABLE -->
+      <div class="invoice-table-wrapper">
+        <table class="invoice-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Description / Specification</th>
+              <th>Specs / Medium</th>
+              <th>Qty / Faces</th>
+              <th class="text-right">Rate</th>
+              <th class="text-right">Amount (INR)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>
+                <strong>Handcrafted Custom Pencil Portrait</strong>
+                <p class="table-sub">100% hand-drawn on 250 GSM acid-free German fine-art paper with smudge-proof fixative.</p>
+              </td>
+              <td><%= order.portrait_medium %> (<%= order.portrait_size %>)</td>
+              <td>1 Base Face</td>
+              <td class="text-right">₹<%= Number(order.base_price).toLocaleString('en-IN') %></td>
+              <td class="text-right">₹<%= Number(order.base_price).toLocaleString('en-IN') %></td>
+            </tr>
+
+            <% if (order.faces_extra > 0) { %>
+              <tr>
+                <td>2</td>
+                <td>
+                  <strong>Additional Subject Detailing</strong>
+                  <p class="table-sub">Layered shading & facial rendering for additional subject(s).</p>
+                </td>
+                <td><%= order.num_faces - 1 %> Additional Face(s)</td>
+                <td><%= order.num_faces - 1 %></td>
+                <td class="text-right">₹<%= Number(order.faces_extra / (order.num_faces - 1)).toLocaleString('en-IN') %></td>
+                <td class="text-right">₹<%= Number(order.faces_extra).toLocaleString('en-IN') %></td>
+              </tr>
+            <% } %>
+
+            <tr>
+              <td><%= order.faces_extra > 0 ? 3 : 2 %></td>
+              <td>
+                <strong>Framing & Mounting Specification</strong>
+                <p class="table-sub"><%= order.frame_type %></p>
+              </td>
+              <td><%= order.frame_type.includes('Unframed') ? 'Protective Art Tube' : 'Glass Mounted Frame' %></td>
+              <td>1 Unit</td>
+              <td class="text-right">₹<%= Number(order.frame_price || 0).toLocaleString('en-IN') %></td>
+              <td class="text-right">₹<%= Number(order.frame_price || 0).toLocaleString('en-IN') %></td>
+            </tr>
+
+            <tr>
+              <td><%= order.faces_extra > 0 ? 4 : 3 %></td>
+              <td>
+                <strong>Insured Art Courier Delivery</strong>
+                <p class="table-sub">Triple-layer bubble wrap & shockproof outer wooden core.</p>
+              </td>
+              <td>Pan-India Express</td>
+              <td>1 Shipment</td>
+              <td class="text-right"><%= order.shipping_charge > 0 ? '₹' + order.shipping_charge : '₹0' %></td>
+              <td class="text-right"><%= order.shipping_charge > 0 ? '₹' + Number(order.shipping_charge).toLocaleString('en-IN') : 'FREE' %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- BILLING CALCULATION & TOTALS SECTION -->
+      <div class="invoice-totals-grid">
+        <div class="invoice-terms-col">
+          <h4>Artisan Authenticity & Guarantee</h4>
+          <p>This invoice certifies that the artwork commissioned above is an original, handmade pencil sketch drawn exclusively by Midhun R.S. using professional graphite/charcoal. It comes with lifetime anti-yellowing fixative protection.</p>
+          <div class="artist-signature-block">
+            <span class="artist-sig">Midhun R.S.</span>
+            <span class="sig-title">Master Artist & Studio Founder</span>
+          </div>
+        </div>
+
+        <div class="invoice-figures-col">
+          <% 
+            const subtotal = Number(order.base_price) + Number(order.frame_price || 0) + Number(order.faces_extra || 0);
+          %>
+          <div class="fig-row">
+            <span>Subtotal (Net Amount):</span>
+            <strong>₹<%= subtotal.toLocaleString('en-IN') %></strong>
+          </div>
+          <div class="fig-row">
+            <span>GST (5% Arts & Crafts):</span>
+            <strong>₹<%= Number(order.tax_amount || 0).toLocaleString('en-IN') %></strong>
+          </div>
+          <div class="fig-row">
+            <span>Insured Courier Shipping:</span>
+            <strong><%= order.shipping_charge > 0 ? '₹' + Number(order.shipping_charge).toLocaleString('en-IN') : '₹0 (Free)' %></strong>
+          </div>
+          <div class="fig-divider"></div>
+          <div class="fig-row grand-total-row">
+            <span>Total Amount Billed:</span>
+            <span class="grand-total-val">₹<%= Number(order.total_amount).toLocaleString('en-IN') %></span>
+          </div>
+          <div class="paid-stamp-badge">
+            <i class="fa-solid fa-stamp"></i> <%= (order.payment_status || 'PAID').toUpperCase() %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invoice Footer -->
+      <div class="invoice-footer">
+        <p>Thank you for commissioning authentic handmade art. For tracking inquiries, contact: midhunrs727@gmail.com</p>
+        <p class="copyright-line">Midhun Pencil Portraits Studio | Ernakulam, Kerala, India</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

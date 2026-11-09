@@ -1,0 +1,122 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="main-content admin-orders-page">
+  <div class="container admin-container">
+    <div class="admin-header-row">
+      <div>
+        <a href="/admin/dashboard" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        <h1 class="admin-page-title"><i class="fa-solid fa-list-check gold-text"></i> Client Commissions Management</h1>
+        <p class="admin-page-subtitle">View customer uploaded reference photos, delivery addresses, and update drawing status.</p>
+      </div>
+
+      <a href="/orders/give-order" class="btn btn-gold btn-sm" target="_blank">
+        <i class="fa-solid fa-plus"></i> New Commission Form
+      </a>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <% if (orders && orders.length > 0) { %>
+      <div class="admin-orders-grid">
+        <% orders.forEach(order => { %>
+          <div class="admin-order-card">
+            <div class="aoc-header">
+              <div class="aoc-id">
+                <strong>#<%= order.order_number %></strong>
+                <span class="aoc-date"><%= new Date(order.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %></span>
+              </div>
+              <div class="aoc-badges">
+                <span class="badge-payment <%= order.payment_status === 'Paid' ? 'paid' : 'unpaid' %>">
+                  <i class="fa-solid fa-wallet"></i> <%= order.payment_status %>
+                </span>
+                <span class="badge-status status-<%= (order.order_status || 'pending').toLowerCase().replace(/\s+/g, '-') %>">
+                  <%= order.order_status %>
+                </span>
+              </div>
+            </div>
+
+            <div class="aoc-body">
+              <!-- Reference Photo Preview -->
+              <div class="aoc-photo-col">
+                <div class="aoc-photo-wrapper">
+                  <img src="<%= order.reference_photo %>" alt="Client Reference Photo" class="aoc-thumb-img">
+                  <a href="<%= order.reference_photo %>" target="_blank" class="aoc-photo-zoom" title="View Full High-Resolution Photo">
+                    <i class="fa-solid fa-expand"></i> View High-Res
+                  </a>
+                </div>
+              </div>
+
+              <!-- Order Specs -->
+              <div class="aoc-info-col">
+                <h3 class="aoc-medium-title"><%= order.portrait_medium %></h3>
+                <div class="aoc-specs-row">
+                  <span><strong>Size:</strong> <%= order.portrait_size %></span>
+                  <span><strong>Faces:</strong> <%= order.num_faces %></span>
+                  <span><strong>Frame:</strong> <%= order.frame_type %></span>
+                </div>
+
+                <% if (order.special_instructions) { %>
+                  <div class="aoc-notes">
+                    <i class="fa-solid fa-comment-dots text-gold"></i>
+                    <em>"<%= order.special_instructions %>"</em>
+                  </div>
+                <% } %>
+
+                <div class="aoc-client-box">
+                  <p><strong>Client:</strong> <%= order.customer_name %> (<%= order.customer_email %>)</p>
+                  <p><strong>Phone:</strong> <a href="tel:<%= order.customer_phone %>" class="text-gold"><%= order.customer_phone %></a></p>
+                  <p><strong>Shipping Address:</strong> <%= order.shipping_address %>, <%= order.city %>, <%= order.state %> - <%= order.pincode %></p>
+                </div>
+              </div>
+
+              <!-- Pricing & Status Updater Form -->
+              <div class="aoc-pricing-col">
+                <div class="aoc-price-box">
+                  <span class="aoc-price-label">Commission Total</span>
+                  <h3 class="aoc-price-val">₹<%= Number(order.total_amount).toLocaleString('en-IN') %></h3>
+                  <small class="text-muted"><%= order.payment_method %></small>
+                </div>
+
+                <!-- Update Status Form -->
+                <form action="/admin/orders/update-status" method="POST" class="aoc-status-form">
+                  <input type="hidden" name="orderId" value="<%= order._id %>">
+                  <label class="form-label" style="font-size: 11px;">Update Commission Progress:</label>
+                  <div class="status-select-wrap">
+                    <select name="order_status" class="form-control form-control-sm">
+                      <option value="Pending" <%= order.order_status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                      <option value="Sketching in Progress" <%= order.order_status === 'Sketching in Progress' ? 'selected' : '' %>>Sketching in Progress</option>
+                      <option value="Finishing & Framing" <%= order.order_status === 'Finishing & Framing' ? 'selected' : '' %>>Finishing & Framing</option>
+                      <option value="Dispatched" <%= order.order_status === 'Dispatched' ? 'selected' : '' %>>Dispatched</option>
+                      <option value="Delivered" <%= order.order_status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                    </select>
+                    <button type="submit" class="btn btn-gold btn-sm" title="Save Status">
+                      <i class="fa-solid fa-check"></i>
+                    </button>
+                  </div>
+                </form>
+
+                <div class="aoc-links-row">
+                  <a href="/billing/receipt/<%= order.order_number %>" class="btn btn-outline-light btn-sm" target="_blank">
+                    <i class="fa-solid fa-file-invoice"></i> View Invoice
+                  </a>
+                  <a href="/billing/receipt/<%= order.order_number %>/download-pdf" class="btn btn-outline-gold btn-sm" target="_blank">
+                    <i class="fa-solid fa-file-pdf"></i> Download PDF
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="empty-admin-box">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <h3>No Client Commissions Yet</h3>
+        <p>Orders submitted by customers via "Give Your Order" will appear here in real-time.</p>
+      </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

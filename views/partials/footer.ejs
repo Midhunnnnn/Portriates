@@ -1,0 +1,87 @@
+<footer class="studio-footer">
+  <div class="footer-container">
+    <div class="footer-grid">
+      <!-- Col 1: Brand & Philosophy -->
+      <div class="footer-col brand-col">
+        <div class="footer-brand">
+          <i class="fa-solid fa-pen-nib gold-text"></i>
+          <span>MIDHUN PENCIL PORTRAITS</span>
+        </div>
+        <p class="footer-desc">
+          Transforming your cherished memories and photographs into timeless, emotive graphite & charcoal heirloom portraits. 100% hand-drawn with surgical precision and artistic soul.
+        </p>
+        <div class="studio-badge-pill">
+          <i class="fa-solid fa-award"></i> Master Fine Artist Portfolio
+        </div>
+      </div>
+
+      <!-- Col 2: Quick Links -->
+      <div class="footer-col">
+        <h4 class="footer-heading">Navigation</h4>
+        <ul class="footer-links">
+          <li><a href="/#gallery">Showcase Gallery</a></li>
+          <li><a href="/#pricing">Commission Pricing</a></li>
+          <li><a href="/orders/give-order">Give Your Order</a></li>
+          <li><a href="/#process">Handmade Art Process</a></li>
+          <li><a href="/#about">About Midhun R.S.</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Commission Options -->
+      <div class="footer-col">
+        <h4 class="footer-heading">Portrait Categories</h4>
+        <ul class="footer-links">
+          <li><a href="/?category=hyper-realistic#gallery">Hyper-Realistic Faces</a></li>
+          <li><a href="/?category=couple+%26+wedding#gallery">Wedding & Couple Keepsakes</a></li>
+          <li><a href="/?category=celebrity+%26+icons#gallery">Celebrity & Iconic Tributes</a></li>
+          <li><a href="/?category=pet+portraits#gallery">Detailed Pet Sketches</a></li>
+          <li><a href="/?category=wildlife+%26+nature#gallery">Wildlife Charcoal Art</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 4: Studio Contact & Verification -->
+      <div class="footer-col contact-col">
+        <h4 class="footer-heading">Studio Inquiries</h4>
+        <p class="contact-line">
+          <i class="fa-solid fa-envelope gold-text"></i>
+          <a href="mailto:midhunrs727@gmail.com">midhunrs727@gmail.com</a>
+        </p>
+        <p class="contact-line">
+          <i class="fa-solid fa-location-dot gold-text"></i>
+          <span>Art Studio, Thiruvananthapuram, Kerala, India</span>
+        </p>
+        <p class="contact-line">
+          <i class="fa-solid fa-truck-fast gold-text"></i>
+          <span>Safely Dispatched Nationwide & Global</span>
+        </p>
+        
+        <div class="admin-login-shortcut">
+          <a href="/auth/admin-login" class="text-muted-link">
+            <i class="fa-solid fa-user-shield"></i> Artist / Admin Portal
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; <%= new Date().getFullYear() %> Midhun Pencil Portraits. All original artworks protected by copyright. Hand-crafted with graphite, charcoal & passion.</p>
+      <div class="secure-badge">
+        <i class="fa-solid fa-shield-halved"></i> 100% Genuine Handcrafted Artwork Guarantee
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Lightbox Modal for Artworks -->
+<div class="modal-backdrop" id="artworkModal">
+  <div class="modal-card">
+    <button class="modal-close-btn" id="modalCloseBtn">&times;</button>
+    <div class="modal-body" id="modalContent">
+      <!-- Injected via JavaScript -->
+    </div>
+  </div>
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

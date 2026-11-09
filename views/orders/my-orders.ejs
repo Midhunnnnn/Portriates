@@ -1,0 +1,92 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="main-content orders-page">
+  <div class="container">
+    <div class="page-title-row">
+      <div>
+        <h1 class="page-title"><i class="fa-solid fa-boxes-stacked gold-text"></i> My Portrait Commissions</h1>
+        <p class="page-subtitle">Track drawing progress, download PDF tax receipts, and view specifications.</p>
+      </div>
+      <a href="/orders/give-order" class="btn btn-gold">
+        <i class="fa-solid fa-plus"></i> Commission New Portrait
+      </a>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <% if (orders && orders.length > 0) { %>
+      <div class="orders-list">
+        <% orders.forEach(order => { %>
+          <div class="order-card">
+            <div class="order-card-header">
+              <div class="order-card-meta">
+                <span class="order-id-tag">#<%= order.order_number %></span>
+                <span class="order-date"><i class="fa-regular fa-calendar"></i> <%= new Date(order.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %></span>
+              </div>
+              <div class="order-badges">
+                <span class="badge-status status-<%= (order.order_status || 'pending').toLowerCase().replace(/\s+/g, '-') %>">
+                  <i class="fa-solid fa-pencil"></i> <%= order.order_status %>
+                </span>
+                <span class="badge-payment <%= order.payment_status === 'Paid' ? 'paid' : 'unpaid' %>">
+                  <%= order.payment_status %>
+                </span>
+              </div>
+            </div>
+
+            <div class="order-card-body">
+              <div class="order-ref-thumbnail">
+                <img src="<%= order.reference_photo %>" alt="Commission reference photo" class="ref-thumb-img">
+              </div>
+
+              <div class="order-details-col">
+                <h3 class="order-specs-title"><%= order.portrait_medium %></h3>
+                <div class="order-specs-pills">
+                  <span><i class="fa-solid fa-ruler-combined"></i> <%= order.portrait_size %></span>
+                  <span><i class="fa-solid fa-users"></i> <%= order.num_faces %> Face(s)</span>
+                  <span><i class="fa-solid fa-crop-simple"></i> <%= order.frame_type %></span>
+                </div>
+                <p class="order-delivery-snippet">
+                  <i class="fa-solid fa-location-dot"></i> Delivering to: <strong><%= order.customer_name %></strong>, <%= order.city %>, <%= order.state %> - <%= order.pincode %>
+                </p>
+              </div>
+
+              <div class="order-pricing-col">
+                <span class="pricing-label">Total Amount</span>
+                <span class="pricing-val">₹<%= Number(order.total_amount).toLocaleString('en-IN') %></span>
+                <small class="pricing-method"><%= order.payment_method %></small>
+              </div>
+
+              <div class="order-actions-col">
+                <a href="/billing/receipt/<%= order.order_number %>" class="btn btn-sm btn-outline-gold">
+                  <i class="fa-solid fa-file-invoice"></i> View Invoice
+                </a>
+                <a href="/billing/receipt/<%= order.order_number %>/download-pdf" class="btn btn-sm btn-secondary" target="_blank">
+                  <i class="fa-solid fa-file-pdf"></i> Download PDF
+                </a>
+                <% if (order.payment_status !== 'Paid') { %>
+                  <a href="/payment/checkout/<%= order.order_number %>" class="btn btn-sm btn-gold">
+                    <i class="fa-solid fa-credit-card"></i> Pay Now
+                  </a>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="empty-state-card">
+        <div class="empty-icon-circle">
+          <i class="fa-solid fa-paintbrush"></i>
+        </div>
+        <h2>You haven't commissioned any portraits yet</h2>
+        <p>Give life to your favorite photographs with an authentic handcrafted pencil sketch today.</p>
+        <a href="/orders/give-order" class="btn btn-gold btn-lg">
+          <i class="fa-solid fa-plus"></i> Give Your First Order
+        </a>
+      </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

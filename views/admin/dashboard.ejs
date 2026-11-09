@@ -1,0 +1,207 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="main-content admin-dashboard-page">
+  <div class="container admin-container">
+    <div class="admin-header-row">
+      <div>
+        <div class="admin-badge-strip">
+          <i class="fa-solid fa-shield-halved"></i> MASTER ARTIST CONTROL PANEL
+        </div>
+        <h1 class="admin-page-title">Studio Management Dashboard</h1>
+        <p class="admin-page-subtitle">Master Artist Control Center</p>
+      </div>
+
+      <div class="admin-header-actions">
+        <a href="/admin/artworks" class="btn btn-outline-gold btn-sm">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Add New Artwork
+        </a>
+        <a href="/admin/orders" class="btn btn-gold btn-sm">
+          <i class="fa-solid fa-list-check"></i> Manage Commissions
+        </a>
+      </div>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <!-- METRICS CARDS -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon-wrap bg-gold-glow">
+          <i class="fa-solid fa-palette"></i>
+        </div>
+        <div class="metric-data">
+          <span class="metric-label">Total Commissions</span>
+          <h3 class="metric-value"><%= stats.totalOrders %></h3>
+          <span class="metric-trend text-gold"><i class="fa-solid fa-box"></i> Handcrafted Orders</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon-wrap bg-green-glow">
+          <i class="fa-solid fa-indian-rupee-sign"></i>
+        </div>
+        <div class="metric-data">
+          <span class="metric-label">Total Revenue</span>
+          <h3 class="metric-value">₹<%= stats.totalRevenue.toLocaleString('en-IN') %></h3>
+          <span class="metric-trend text-success"><i class="fa-solid fa-circle-check"></i> Verified Payments</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon-wrap bg-amber-glow">
+          <i class="fa-solid fa-pencil"></i>
+        </div>
+        <div class="metric-data">
+          <span class="metric-label">Sketching Queue</span>
+          <h3 class="metric-value"><%= stats.inProgressOrders + stats.pendingOrders %></h3>
+          <span class="metric-trend text-warning"><i class="fa-solid fa-hourglass-half"></i> In Artist Queue</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon-wrap bg-blue-glow">
+          <i class="fa-solid fa-images"></i>
+        </div>
+        <div class="metric-data">
+          <span class="metric-label">Gallery Artworks</span>
+          <h3 class="metric-value"><%= artworksCount %></h3>
+          <span class="metric-trend text-info"><i class="fa-solid fa-eye"></i> Live in Showcase</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK ACTIONS & EMAIL DIAGNOSTIC -->
+    <div class="admin-quick-grid">
+      <div class="admin-card">
+        <h3 class="admin-card-title"><i class="fa-solid fa-sliders gold-text"></i> Quick Studio Controls</h3>
+        <div class="quick-btns-row">
+          <a href="/admin/orders" class="quick-action-btn">
+            <i class="fa-solid fa-boxes-stacked"></i>
+            <span>View All Client Commissions</span>
+          </a>
+          <a href="/admin/artworks" class="quick-action-btn">
+            <i class="fa-solid fa-palette"></i>
+            <span>Upload New Portrait to Gallery</span>
+          </a>
+          <a href="/orders/give-order" class="quick-action-btn" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            <span>Preview Client Order Form</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h3 class="admin-card-title"><i class="fa-solid fa-envelope gold-text"></i> Automated Email Service</h3>
+        <p class="text-muted" style="font-size: 13px;">
+          Automated customer confirmation & artist alerts active.
+        </p>
+        <button id="btnTestEmail" class="btn btn-outline-light btn-sm" onclick="testEmailConnection()">
+          <i class="fa-solid fa-satellite-dish"></i> Test SMTP Connection
+        </button>
+        <div id="emailTestResult" style="margin-top: 8px; font-size: 12px; display: none;"></div>
+      </div>
+    </div>
+
+    <!-- RECENT COMMISSIONS TABLE -->
+    <div class="admin-card">
+      <div class="admin-card-header-flex">
+        <h3 class="admin-card-title"><i class="fa-solid fa-clock-rotate-left gold-text"></i> Recent Commission Orders</h3>
+        <a href="/admin/orders" class="btn btn-outline-gold btn-sm">View All Orders</a>
+      </div>
+
+      <% if (recentOrders && recentOrders.length > 0) { %>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Client Name</th>
+                <th>Reference Photo</th>
+                <th>Specs / Medium</th>
+                <th>Amount</th>
+                <th>Payment</th>
+                <th>Commission Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% recentOrders.forEach(order => { %>
+                <tr>
+                  <td><strong>#<%= order.order_number %></strong></td>
+                  <td>
+                    <div><strong><%= order.customer_name %></strong></div>
+                    <small class="text-muted"><%= order.customer_phone %></small>
+                  </td>
+                  <td>
+                    <a href="<%= order.reference_photo %>" target="_blank" class="ref-photo-link" title="Click to view reference image in full resolution">
+                      <img src="<%= order.reference_photo %>" alt="Client Reference Photo" class="admin-ref-thumb">
+                    </a>
+                  </td>
+                  <td>
+                    <div><%= order.portrait_medium %></div>
+                    <small class="text-muted"><%= order.portrait_size %> • <%= order.num_faces %> Face(s)</small>
+                  </td>
+                  <td><strong class="text-gold">₹<%= Number(order.total_amount).toLocaleString('en-IN') %></strong></td>
+                  <td>
+                    <span class="badge-payment <%= order.payment_status === 'Paid' ? 'paid' : 'unpaid' %>">
+                      <%= order.payment_status %>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge-status status-<%= (order.order_status || 'pending').toLowerCase().replace(/\s+/g, '-') %>">
+                      <%= order.order_status %>
+                    </span>
+                  </td>
+                  <td>
+                    <div class="admin-action-btns">
+                      <a href="/billing/receipt/<%= order.order_number %>" class="btn-icon" title="View Official Receipt" target="_blank">
+                        <i class="fa-solid fa-file-invoice"></i>
+                      </a>
+                      <a href="/billing/receipt/<%= order.order_number %>/download-pdf" class="btn-icon" title="Download PDF" target="_blank">
+                        <i class="fa-solid fa-file-pdf"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="empty-admin-box">
+          <i class="fa-solid fa-paintbrush"></i>
+          <p>No commissions received yet. When clients use "Give Your Order", they will appear here!</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<script>
+async function testEmailConnection() {
+  const resultDiv = document.getElementById('emailTestResult');
+  const btn = document.getElementById('btnTestEmail');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = '<span class="text-muted">Connecting to Google SMTP...</span>';
+
+  try {
+    const res = await fetch('/admin/test-email');
+    const data = await res.json();
+    if (data.success) {
+      resultDiv.innerHTML = `<span class="text-success"><i class="fa-solid fa-circle-check"></i> ${data.message}</span>`;
+    } else {
+      resultDiv.innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> ${data.message}</span>`;
+    }
+  } catch (e) {
+    resultDiv.innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> Error: ${e.message}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-satellite-dish"></i> Test SMTP Connection';
+  }
+}
+</script>
+
+<%- include('../partials/footer') %>

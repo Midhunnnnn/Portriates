@@ -1,0 +1,88 @@
+<header class="studio-header">
+  <div class="nav-container">
+    <!-- Brand Logo -->
+    <a href="/" class="brand-logo">
+      <div class="logo-icon">
+        <i class="fa-solid fa-pen-nib"></i>
+      </div>
+      <div class="logo-text">
+        <span class="brand-title">MIDHUN</span>
+        <span class="brand-subtitle">PENCIL PORTRAITS</span>
+      </div>
+    </a>
+
+    <!-- Navigation Links -->
+    <nav class="nav-menu" id="navMenu">
+      <a href="/" class="nav-link <%= typeof path !== 'undefined' && path === '/' ? 'active' : '' %>">Home</a>
+      <a href="/#gallery" class="nav-link">Gallery</a>
+      <a href="/#pricing" class="nav-link">Pricing</a>
+      <a href="/#process" class="nav-link">Art Process</a>
+      <a href="/#about" class="nav-link">Artist</a>
+
+      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+        <a href="/orders/my-orders" class="nav-link <%= typeof path !== 'undefined' && path.startsWith('/orders/my-orders') ? 'active' : '' %>">
+          <i class="fa-solid fa-box-archive"></i> My Orders
+        </a>
+      <% } %>
+    </nav>
+
+    <!-- Header Actions (CTA + Auth) -->
+    <div class="header-actions">
+      <!-- "Give Your Order" Main CTA -->
+      <a href="/orders/give-order" class="btn btn-gold btn-order pulse-cta">
+        <i class="fa-solid fa-paintbrush"></i> Give Your Order
+      </a>
+
+      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+        <div class="user-dropdown">
+          <button class="user-badge-btn" id="userMenuToggle">
+            <span class="avatar-initial"><%= currentUser.name.charAt(0).toUpperCase() %></span>
+            <span class="user-display-name"><%= currentUser.name.split(' ')[0] %></span>
+            <% if (currentUser.role === 'admin') { %>
+              <span class="badge-role-admin">Admin</span>
+            <% } %>
+            <i class="fa-solid fa-chevron-down caret-icon"></i>
+          </button>
+          <div class="dropdown-menu" id="userDropdownMenu">
+            <div class="dropdown-header">
+              <strong><%= currentUser.name %></strong>
+              <small><%= currentUser.email %></small>
+            </div>
+            <div class="dropdown-divider"></div>
+            <% if (currentUser.role === 'admin') { %>
+              <a href="/admin/dashboard" class="dropdown-item">
+                <i class="fa-solid fa-chart-line"></i> Admin Dashboard
+              </a>
+              <a href="/admin/orders" class="dropdown-item">
+                <i class="fa-solid fa-boxes-stacked"></i> Manage Orders
+              </a>
+              <a href="/admin/artworks" class="dropdown-item">
+                <i class="fa-solid fa-palette"></i> Manage Gallery
+              </a>
+              <div class="dropdown-divider"></div>
+            <% } %>
+            <a href="/orders/my-orders" class="dropdown-item">
+              <i class="fa-solid fa-receipt"></i> My Commissions
+            </a>
+            <a href="/auth/logout" class="dropdown-item text-danger">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+            </a>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="auth-buttons">
+          <a href="/auth/login" class="nav-auth-link">Sign In</a>
+          <a href="/auth/register" class="btn btn-sm btn-outline-light">Sign Up</a>
+          <a href="/auth/admin-login" class="admin-portal-link" title="Artist Admin Portal">
+            <i class="fa-solid fa-lock"></i>
+          </a>
+        </div>
+      <% } %>
+
+      <!-- Mobile Hamburger Toggle -->
+      <button class="mobile-toggle" id="mobileMenuBtn" aria-label="Toggle navigation">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+  </div>
+</header>

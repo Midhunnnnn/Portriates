@@ -1,0 +1,348 @@
+<%- include('partials/header') %>
+  <%- include('partials/navbar') %>
+
+    <main class="main-content">
+      <%- include('partials/alerts') %>
+
+        <!-- HERO SECTION -->
+        <section class="hero-section">
+          <div class="hero-backdrop-glow"></div>
+          <div class="hero-container">
+            <div class="hero-content">
+              <div class="hero-pill">
+                <i class="fa-solid fa-sparkles"></i> 100% Hand-Drawn Fine Art Masterpieces
+              </div>
+              <h1 class="hero-title">
+                Immortalize Life's Precious Moments In <span class="text-gold">Graphite & Charcoal</span>
+              </h1>
+              <p class="hero-subtitle">
+                Hyper-realistic handcrafted pencil portraits rendered with surgical shading, micro-textures, and
+                artistic soul. Created from your favorite photographs on 250 GSM archival paper.
+              </p>
+
+              <div class="hero-cta-group">
+                <a href="/orders/give-order" class="btn btn-gold btn-lg pulse-cta">
+                  <i class="fa-solid fa-paintbrush"></i> Give Your Order Now
+                </a>
+                <a href="#gallery" class="btn btn-outline-light btn-lg">
+                  <i class="fa-regular fa-images"></i> View Gallery
+                </a>
+              </div>
+
+              <div class="hero-stats-row">
+                <div class="stat-item">
+                  <span class="stat-number">500+</span>
+                  <span class="stat-label">Portraits Commissioned</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                  <span class="stat-number">100%</span>
+                  <span class="stat-label">Handcrafted by Midhun</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                  <span class="stat-number">4.9/5</span>
+                  <span class="stat-label">Client Satisfaction</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="hero-visual">
+              <div class="hero-frame-wrapper">
+                <div class="hero-frame-border">
+                  <div class="hero-sketch-showcase">
+                    <img src="/images/samples/catpencil.jpg" alt="Hyyper-Realistic Pencil Portrait" class="hero-img">
+                    <div class="artist-signature-tag">
+                      <span class="sig-name">Midhun R.S.</span>
+                      <span class="sig-title">Lead Artist</span>
+                    </div>
+                    <div class="artwork-spec-badge">
+                      <i class="fa-solid fa-pencil"></i> Staedtler Lumograph • 65 Hrs Detail
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HIGHLIGHTED ORDER BANNER -->
+        <section class="order-highlight-banner">
+          <div class="container">
+            <div class="banner-inner">
+              <div class="banner-text">
+                <span class="banner-badge">CUSTOM COMMISSION</span>
+                <h3>Looking for a personalized gift for weddings, birthdays, or family heirlooms?</h3>
+                <p>Send your photo, choose your paper size and custom frame, and receive an authentic museum-grade
+                  sketch delivered to your doorstep.</p>
+              </div>
+              <div class="banner-btn-wrap">
+                <a href="/orders/give-order" class="btn btn-gold btn-lg">
+                  <i class="fa-solid fa-arrow-right"></i> Give Your Order
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PORTFOLIO SHOWCASE GALLERY -->
+        <section class="gallery-section" id="gallery">
+          <div class="container">
+            <div class="section-header text-center">
+              <span class="section-tag">ARCHIVAL PORTFOLIO</span>
+              <h2 class="section-title">Masterpiece Pencil Portraits</h2>
+              <p class="section-subtitle">Browse through handcrafted portraits across various subjects, media, and
+                dimensions.</p>
+            </div>
+
+            <!-- Category Filter Pills -->
+            <div class="filter-pills-wrap">
+              <% categories.forEach(cat=> { %>
+                <a href="/?category=<%= encodeURIComponent(cat.id) %>#gallery"
+                  class="filter-pill <%= selectedCategory === cat.id ? 'active' : '' %>">
+                  <%= cat.name %>
+                </a>
+                <% }) %>
+            </div>
+
+            <!-- Artworks Grid -->
+            <div class="artworks-grid">
+              <% if (artworks && artworks.length> 0) { %>
+                <% artworks.forEach(art=> { %>
+                  <div class="art-card" data-id="<%= art.id %>">
+                    <div class="art-media-wrapper">
+                      <img src="<%= art.image_url %>" alt="<%= art.title %>" class="art-img" loading="lazy">
+                      <div class="art-overlay">
+                        <button class="btn-quick-view" onclick="openArtworkModal('<%= art._id %>')"
+                          title="Inspect Detailing">
+                          <i class="fa-solid fa-magnifying-glass-plus"></i> View Detailing
+                        </button>
+                        <a href="/orders/give-order?medium=<%= encodeURIComponent(art.medium) %>&size=<%= encodeURIComponent(art.size) %>"
+                          class="btn-commission-similar">
+                          <i class="fa-solid fa-paintbrush"></i> Commission Similar
+                        </a>
+                      </div>
+                      <div class="art-category-tag">
+                        <%= art.category %>
+                      </div>
+                    </div>
+
+                    <div class="art-details">
+                      <h3 class="art-title">
+                        <%= art.title %>
+                      </h3>
+                      <div class="art-specs">
+                        <span><i class="fa-solid fa-pencil"></i>
+                          <%= art.medium %>
+                        </span>
+                        <span><i class="fa-solid fa-ruler-combined"></i>
+                          <%= art.size %>
+                        </span>
+                      </div>
+                      <p class="art-desc">
+                        <%= art.description %>
+                      </p>
+                      <div class="art-footer">
+                        <div class="art-price-wrap">
+                          <small>Commission starting at</small>
+                          <span class="art-price">₹<%= art.price.toLocaleString('en-IN') %></span>
+                        </div>
+                        <a href="/orders/give-order?size=<%= encodeURIComponent(art.size) %>"
+                          class="btn btn-sm btn-outline-gold">
+                          Order This Style
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <% }) %>
+                    <% } else { %>
+                      <div class="no-artworks-found">
+                        <i class="fa-solid fa-paintbrush"></i>
+                        <p>No pencil portraits found in this category right now.</p>
+                        <a href="/#gallery" class="btn btn-sm btn-outline-light">Show All Artworks</a>
+                      </div>
+                      <% } %>
+            </div>
+          </div>
+        </section>
+
+        <!-- PRICING & SPECIFICATIONS GUIDE -->
+        <section class="pricing-section" id="pricing">
+          <div class="container">
+            <div class="section-header text-center">
+              <span class="section-tag">TRANSPARENT PRICING</span>
+              <h2 class="section-title">Commission Dimensions & Rates</h2>
+              <p class="section-subtitle">Every piece is drawn on heavyweight 250 GSM German archival paper with
+                professional fixative coat.</p>
+            </div>
+
+            <div class="pricing-grid">
+              <!-- A4 Size Card -->
+              <div class="pricing-card">
+                <div class="pricing-badge">POPULAR FOR GIFTS</div>
+                <h3 class="pricing-title">A4 Master Portrait</h3>
+                <p class="pricing-dim">8.3 &times; 11.7 inches (21 &times; 29.7 cm)</p>
+                <div class="price-figure">
+                  <span class="currency">₹</span>
+                  <span class="amount">1,800</span>
+                  <span class="period">/ single face</span>
+                </div>
+                <p class="pricing-lead">Ideal for personal desk frames, solo portraits, birthdays, and individual pet
+                  sketches.</p>
+                <ul class="pricing-features">
+                  <li><i class="fa-solid fa-check gold-text"></i> Single subject / 1 Face included</li>
+                  <li><i class="fa-solid fa-check gold-text"></i> Premium 250 GSM Archival Board</li>
+                  <li><i class="fa-solid fa-check gold-text"></i> Fixative smudge-proof finish</li>
+                  <li><i class="fa-solid fa-check gold-text"></i> Framing options available</li>
+                  <li><i class="fa-solid fa-check gold-text"></i> Completed in 4 to 6 business days</li>
+                </ul>
+                <a href="/orders/give-order?size=<%= encodeURIComponent('A4 (8.3 x 11.7 in)') %>"
+                  class="btn btn-outline-gold btn-block">
+                  Order A4 Portrait
+                </a>
+              </div>
+
+              <!-- A3 Size Card (Featured) -->
+              <div class="pricing-card featured-pricing">
+                <div class="pricing-badge gold-bg">MOST POPULAR • BESTSELLER</div>
+                <h3 class="pricing-title">A3 Grand Portrait</h3>
+                <p class="pricing-dim">11.7 &times; 16.5 inches (29.7 &times; 42 cm)</p>
+                <div class="price-figure">
+                  <span class="currency">₹</span>
+                  <span class="amount">2,800</span>
+                  <span class="period">/ single face</span>
+                </div>
+                <p class="pricing-lead">Our most sought-after size. Exceptional focal depth for couple portraits and
+                  wedding keepsakes.</p>
+                <ul class="pricing-features">
+                  <li><i class="fa-solid fa-check gold-text"></i> Double the surface area of A4</li>
+                  <li><i class="fa-solid fa-check gold-text"></i> High micro-texture resolution</li>
+                  <li><i class="fa-solid fa-check gold-text"></i> Multi-subject couple capability</li>
+                  <li><i class="fa-solid fa-check gold-text"></i> Complimentary high-res digital scan</li>
+                  <li><i class="fa-solid fa-check gold-text"></i> Completed in 6 to 8 business days</li>
+                </ul>
+                <a href="/orders/give-order?size=<%= encodeURIComponent('A3 (11.7 x 16.5 in)') %>"
+                  class="btn btn-gold btn-block pulse-cta">
+                  Order A3 Portrait
+                </a>
+              </div>
+
+              <!-- A2 Size Card -->
+              <div class="pricing-card">
+                <div class="pricing-badge">STATEMENT WALL ART</div>
+                <h3 class="pricing-title">A2 Imperial Portrait</h3>
+                <p class="pricing-dim">16.5 &times; 23.4 inches (42 &times; 59.4 cm)</p>
+                <div class="price-figure">
+                  <span class="currency">₹</span>
+                  <span class="amount">4,200</span>
+                  <span class="period">/ single face</span>
+                </div>
+                <p class="pricing-lead">A dramatic statement heirloom designed for living rooms, wedding galleries, and
+                  family portraits.</p>
+                <ul class="pricing-features">
+                  <li><i class="fa-solid fa-check gold-text"></i> Over 50 hours of hand detailing</li>
+                  <li><i class="fa-solid fa-check gold-text"></i> Perfect for 2 to 4 family faces</li>
+                  <li><i class="fa-solid fa-check gold-text"></i> Heavy 300 GSM Cold Pressed Sheet</li>
+                  <li><i class="fa-solid fa-check gold-text"></i> Luxury teak wood frame compatible</li>
+                  <li><i class="fa-solid fa-check gold-text"></i> Free insured art courier across India</li>
+                </ul>
+                <a href="/orders/give-order?size=<%= encodeURIComponent('A2 (16.5 x 23.4 in)') %>"
+                  class="btn btn-outline-gold btn-block">
+                  Order A2 Portrait
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HOW THE ART PROCESS WORKS -->
+        <section class="process-section" id="process">
+          <div class="container">
+            <div class="section-header text-center">
+              <span class="section-tag">THE ARTISAN JOURNEY</span>
+              <h2 class="section-title">How Your Custom Portrait Comes to Life</h2>
+              <p class="section-subtitle">From a digital smartphone snap to an authentic fine-art graphite heirloom.</p>
+            </div>
+
+            <div class="process-steps-grid">
+              <div class="process-card">
+                <div class="step-number">01</div>
+                <div class="step-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                <h3 class="step-title">Give Your Order & Photo</h3>
+                <p class="step-desc">Upload your photo via our order form. Select your preferred size, medium (graphite
+                  or charcoal), and custom framing.</p>
+              </div>
+
+              <div class="process-card">
+                <div class="step-number">02</div>
+                <div class="step-icon"><i class="fa-solid fa-credit-card"></i></div>
+                <h3 class="step-title">Address & Secure Payment</h3>
+                <p class="step-desc">Review your delivery address and complete checkout via UPI, Card, or Net Banking.
+                  Instant PDF tax invoice issued.</p>
+              </div>
+
+              <div class="process-card">
+                <div class="step-number">03</div>
+                <div class="step-icon"><i class="fa-solid fa-pencil"></i></div>
+                <h3 class="step-title">Drawn by Hand</h3>
+                <p class="step-desc">Midhun lays out anatomical proportions, layers graphite grades from 2H to 8B,
+                  sculpts highlights, and applies fixative.</p>
+              </div>
+
+              <div class="process-card">
+                <div class="step-number">04</div>
+                <div class="step-icon"><i class="fa-solid fa-truck-ramp-box"></i></div>
+                <h3 class="step-title">Framed & Safe Delivery</h3>
+                <p class="step-desc">Your portrait is framed or securely rolled in heavy art tubes with multiple layers
+                  of shockproof packaging and dispatched.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ARTIST SPOTLIGHT -->
+        <section class="artist-section" id="about">
+          <div class="container">
+            <div class="artist-grid">
+              <div class="artist-image-col">
+                <div class="artist-portrait-frame">
+                  <img src="/images/samples/portrait_3_godfather_icon.svg" alt="Master Artist Midhun R.S."
+                    class="artist-photo">
+                  <div class="artist-stamp">
+                    <i class="fa-solid fa-signature"></i>
+                    <span>Fine Art Authenticity</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="artist-bio-col">
+                <span class="section-tag">MEET THE ARTIST</span>
+                <h2 class="section-title">Midhun R.S.</h2>
+                <h4 class="artist-subtitle">Specialist in Hyper-Realistic Graphite & Charcoal Portraiture</h4>
+                <p class="artist-paragraph">
+                  "Art is not merely replicating an image; it is capturing the fleeting glance, the warmth behind a
+                  smile, and the unspoken emotion that makes a memory eternal."
+                </p>
+                <p class="artist-paragraph">
+                  With over 8 years of rigorous classical drawing practice, Midhun combines traditional chiaroscuro
+                  techniques with contemporary hyper-realism. Every commissioned piece is treated as a unique family
+                  legacy, rendered without digital shortcuts, using genuine pencils on archival cotton paper.
+                </p>
+                <div class="artist-creds-row">
+                  <div class="cred-pill"><i class="fa-solid fa-check-circle gold-text"></i> Acid-Free Papers Only</div>
+                  <div class="cred-pill"><i class="fa-solid fa-check-circle gold-text"></i> Staedtler & Faber-Castell
+                  </div>
+                  <div class="cred-pill"><i class="fa-solid fa-check-circle gold-text"></i> 100+ Year Durability</div>
+                </div>
+                <div class="artist-cta">
+                  <a href="/orders/give-order" class="btn btn-gold">
+                    <i class="fa-solid fa-paintbrush"></i> Commission Midhun Today
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+    </main>
+
+    <%- include('partials/footer') %>
