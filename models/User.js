@@ -77,18 +77,22 @@ userSchema.statics.seedAdmin = async function (adminEmail = 'midhunrs727@gmail.c
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(defaultPass, salt);
 
-    await this.create({
-      name: 'Midhun (Artist & Admin)',
-      email: cleanEmail,
-      password: hashedPassword,
-      phone: '+91 9876543210',
-      address: 'Studio Art Lane, Gallery District',
-      city: 'Ernakulam',
-      state: 'Kerala',
-      pincode: '682001',
-      role: 'admin'
-    });
-    console.log(`Admin account seeded in MongoDB: ${cleanEmail} (Role: admin)`);
+    try {
+      await this.create({
+        name: 'Midhun (Artist & Admin)',
+        email: cleanEmail,
+        password: hashedPassword,
+        phone: '+91 9876543210',
+        address: 'Studio Art Lane, Gallery District',
+        city: 'Ernakulam',
+        state: 'Kerala',
+        pincode: '682001',
+        role: 'admin'
+      });
+      console.log(`Admin account seeded in MongoDB: ${cleanEmail} (Role: admin)`);
+    } catch (err) {
+      if (err.code !== 11000) throw err;
+    }
   } else if (existing.role !== 'admin') {
     existing.role = 'admin';
     await existing.save();

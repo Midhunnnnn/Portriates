@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../config/api';
 
 const SIZES = [
   { id: 'A4 (8.3 x 11.7 in)', name: 'A4 Canvas', dims: '8.3 x 11.7 in / 21 x 29.7 cm', basePrice: 2499 },
@@ -86,7 +87,7 @@ export default function GiveOrder() {
 
   const calculatePrice = async () => {
     try {
-      const res = await fetch('/api/orders/calculate-price', {
+      const res = await apiFetch('/api/orders/calculate-price', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -158,7 +159,7 @@ export default function GiveOrder() {
       payload.append('state', formData.state);
       payload.append('pincode', formData.pincode);
 
-      const res = await fetch('/api/orders/give-order', {
+      const res = await apiFetch('/api/orders/give-order', {
         method: 'POST',
         body: payload
       });

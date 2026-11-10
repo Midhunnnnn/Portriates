@@ -75,14 +75,15 @@ exports.postProcessPayment = async (req, res) => {
       console.error('Failed to generate PDF invoice buffer:', pdfErr);
     }
 
-    // Async Nodemailer notifications
-    sendOrderConfirmationEmail(order, pdfBuffer).catch(err => {
-      console.error('Email to customer failed:', err);
-    });
-
-    sendAdminNewOrderAlert(order).catch(err => {
-      console.error('Email alert to admin failed:', err);
-    });
+    // Async Nodemailer notifications (awaited for serverless compatibility)
+    await Promise.allSettled([
+      sendOrderConfirmationEmail(order, pdfBuffer).catch(err => {
+        console.error('Email to customer failed:', err);
+      }),
+      sendAdminNewOrderAlert(order).catch(err => {
+        console.error('Email alert to admin failed:', err);
+      })
+    ]);
 
     res.redirect(`/billing/receipt/${order.order_number}?success=Payment verified! Your commission is in artist queue.`);
   } catch (err) {

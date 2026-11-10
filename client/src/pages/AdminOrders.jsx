@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch, apiUrl } from '../config/api';
 
 const STATUS_OPTIONS = [
   'Pending',
@@ -25,7 +26,7 @@ export default function AdminOrders() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('/api/admin/orders');
+      const res = await apiFetch('/api/admin/orders');
       const data = await res.json();
       if (res.ok && data.success) {
         setOrders(data.orders || []);
@@ -44,7 +45,7 @@ export default function AdminOrders() {
     setError('');
     setSuccess('');
     try {
-      const res = await fetch('/api/admin/orders/update-status', {
+      const res = await apiFetch('/api/admin/orders/update-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId, orderStatus: newStatus })
@@ -235,7 +236,7 @@ export default function AdminOrders() {
                       Tax Invoice
                     </Link>
                     <a
-                      href={`/api/billing/receipt/${ord.orderNumber}/download-pdf`}
+                      href={apiUrl(`/api/billing/receipt/${ord.orderNumber}/download-pdf`)}
                       className="btn-admin-pdf-btn"
                     >
                       PDF Receipt

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ArtworkModal from '../components/ArtworkModal';
 import PencilCat3D from '../components/PencilCat3D';
+import { apiFetch } from '../config/api';
 
 const CATEGORIES = [
   'All',
@@ -25,7 +26,7 @@ export default function Home() {
   const fetchArtworks = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/artworks');
+      const res = await apiFetch('/api/artworks');
       const data = await res.json();
       if (res.ok && data.success) {
         setArtworks(data.artworks || []);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../config/api';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -23,7 +24,7 @@ export default function AdminDashboard() {
 
   const fetchDashboard = async () => {
     try {
-      const res = await fetch('/api/admin/dashboard');
+      const res = await apiFetch('/api/admin/dashboard');
       const data = await res.json();
       if (res.ok && data.success) {
         setStats(data.stats);
@@ -42,7 +43,7 @@ export default function AdminDashboard() {
     setTestingSmtp(true);
     setSmtpStatus('');
     try {
-      const res = await fetch('/api/admin/test-email', { method: 'POST' });
+      const res = await apiFetch('/api/admin/test-email', { method: 'POST' });
       const data = await res.json();
       if (res.ok && data.success) {
         setSmtpStatus('Nodemailer test successful! Diagnostic email delivered to midhunrs727@gmail.com.');

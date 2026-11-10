@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiFetch } from '../config/api';
 
 const AuthContext = createContext();
 
@@ -9,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   // Check existing session
   const checkAuth = async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await apiFetch('/api/auth/me');
       const data = await res.json();
       if (res.ok && data.success && data.user) {
         setUser(data.user);
@@ -30,7 +31,7 @@ export const AuthProvider = ({ children }) => {
 
   // Standard user login
   const login = async (email, password) => {
-    const res = await fetch('/api/auth/login', {
+    const res = await apiFetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -45,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   // Admin login
   const adminLogin = async (email, password) => {
-    const res = await fetch('/api/auth/admin-login', {
+    const res = await apiFetch('/api/auth/admin-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -60,7 +61,7 @@ export const AuthProvider = ({ children }) => {
 
   // Register - dispatches OTP via Nodemailer
   const register = async (userData) => {
-    const res = await fetch('/api/auth/register', {
+    const res = await apiFetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData)
@@ -74,7 +75,7 @@ export const AuthProvider = ({ children }) => {
 
   // Verify OTP to finalize registration
   const verifyOtp = async (email, otp) => {
-    const res = await fetch('/api/auth/verify-otp', {
+    const res = await apiFetch('/api/auth/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, otp })
@@ -89,7 +90,7 @@ export const AuthProvider = ({ children }) => {
 
   // Resend OTP
   const resendOtp = async (email) => {
-    const res = await fetch('/api/auth/resend-otp', {
+    const res = await apiFetch('/api/auth/resend-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
@@ -104,7 +105,7 @@ export const AuthProvider = ({ children }) => {
   // Logout
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await apiFetch('/api/auth/logout', { method: 'POST' });
     } catch (err) {
       console.error('Logout error:', err);
     }

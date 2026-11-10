@@ -145,7 +145,7 @@ exports.postRegister = async (req, res) => {
     req.session.pendingOtpEmail = cleanEmail;
     req.session.pendingOtpName = name.trim();
 
-    sendOtpVerificationEmail(cleanEmail, otpCode, name.trim()).catch(err => {
+    await sendOtpVerificationEmail(cleanEmail, otpCode, name.trim()).catch(err => {
       console.warn('SMTP OTP send warning:', err.message);
     });
 
@@ -242,7 +242,7 @@ exports.postResendOtp = async (req, res) => {
     await otpRecord.save();
 
     const name = (otpRecord.pendingData && otpRecord.pendingData.name) || req.session.pendingOtpName || 'Art Collector';
-    sendOtpVerificationEmail(targetEmail, newOtp, name).catch(err => console.warn(err));
+    await sendOtpVerificationEmail(targetEmail, newOtp, name).catch(err => console.warn(err));
 
     res.json({ success: true, message: 'A new 6-digit verification code has been dispatched to your email.' });
   } catch (err) {
@@ -584,8 +584,10 @@ exports.postProcessPayment = async (req, res) => {
       console.error('PDF invoice buffer generation error:', pdfErr);
     }
 
-    sendOrderConfirmationEmail(order, pdfBuffer).catch(err => console.error('Customer email failed:', err));
-    sendAdminNewOrderAlert(order).catch(err => console.error('Admin email failed:', err));
+    await Promise.allSettled([
+      sendOrderConfirmationEmail(order, pdfBuffer).catch(err => console.error('Customer email failed:', err)),
+      sendAdminNewOrderAlert(order).catch(err => console.error('Admin email failed:', err))
+    ]);
 
     res.json({
       success: true,

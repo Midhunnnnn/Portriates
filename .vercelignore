@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+!.env.example
+.vercel
+node_modules
+client
+data
+scratch
+*.log
+

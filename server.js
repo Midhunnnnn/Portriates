@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('ejs');
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
@@ -6,8 +7,10 @@ const path = require('path');
 const fs = require('fs');
 
 const { connectDB } = require('./config/db');
+const { MongoSessionStore } = require('./config/sessionStore');
 const { seedInitialData } = require('./utils/seedData');
 const { setUserContext } = require('./middleware/authMiddleware');
+const { isServerless, tmpUploadRoot } = require('./middleware/uploadMiddleware');
 
 // Route imports
 const apiRoutes = require('./routes/apiRoutes');
@@ -20,11 +23,39 @@ const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const isProduction = process.env.NODE_ENV === 'production' || isServerless;
 
-// CORS configuration for React dev server
+app.set('trust proxy', 1);
+
+// CORS configuration for React dev server and production frontend
+const devOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+];
+const envOrigins = [
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+  ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : []),
+  ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [])
+]
+  .map((origin) => origin.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(
+  new Set([...(isProduction ? [] : devOrigins), ...envOrigins])
+);
+
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const normalized = origin.replace(/\/+$/, '');
+      if (allowedOrigins.includes(normalized)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
     credentials: true
   })
 );
@@ -39,24 +70,64 @@ app.use(express.json({ limit: '25mb' }));
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
+if (isServerless) {
+  app.use('/uploads', express.static(tmpUploadRoot));
+}
 
-// Ensure upload folders exist
-const uploadsOrdersDir = path.join(__dirname, 'public', 'uploads', 'orders');
-const uploadsArtworksDir = path.join(__dirname, 'public', 'uploads', 'artworks');
-if (!fs.existsSync(uploadsOrdersDir)) fs.mkdirSync(uploadsOrdersDir, { recursive: true });
-if (!fs.existsSync(uploadsArtworksDir)) fs.mkdirSync(uploadsArtworksDir, { recursive: true });
+// Ensure upload folders exist locally (Vercel deployment FS is read-only)
+if (!isServerless) {
+  const uploadsOrdersDir = path.join(__dirname, 'public', 'uploads', 'orders');
+  const uploadsArtworksDir = path.join(__dirname, 'public', 'uploads', 'artworks');
+  try {
+    if (!fs.existsSync(uploadsOrdersDir)) fs.mkdirSync(uploadsOrdersDir, { recursive: true });
+    if (!fs.existsSync(uploadsArtworksDir)) fs.mkdirSync(uploadsArtworksDir, { recursive: true });
+  } catch (err) {
+    console.warn('Upload directory creation warning:', err.message);
+  }
+}
+
+let initPromise = null;
+function ensureAppInitialized() {
+  if (!initPromise) {
+    initPromise = (async () => {
+      await connectDB();
+      await seedInitialData();
+    })().catch((err) => {
+      initPromise = null;
+      throw err;
+    });
+  }
+  return initPromise;
+}
+
+// Ensure MongoDB connection & safe initial seed before session/route handling
+app.use(async (req, res, next) => {
+  try {
+    await ensureAppInitialized();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Session configuration
+const useSecureCookies = process.env.COOKIE_SECURE
+  ? process.env.COOKIE_SECURE === 'true'
+  : isProduction;
+const cookieSameSite = process.env.COOKIE_SAME_SITE || (useSecureCookies ? 'none' : 'lax');
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'midhun_pencil_art_secret_key_2026',
     resave: false,
     saveUninitialized: false,
+    proxy: isProduction,
+    store: new MongoSessionStore(),
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax'
+      secure: useSecureCookies,
+      sameSite: cookieSameSite
     }
   })
 );
@@ -85,8 +156,7 @@ app.use((err, req, res, next) => {
 // Initialize MongoDB and start server
 async function startServer() {
   try {
-    await connectDB();
-    await seedInitialData();
+    await ensureAppInitialized();
 
     app.listen(PORT, () => {
       console.log(`=======================================================`);
@@ -102,4 +172,9 @@ async function startServer() {
   }
 }
 
-startServer();
+if (require.main === module) {
+  startServer();
+}
+
+app.ensureAppInitialized = ensureAppInitialized;
+module.exports = app;

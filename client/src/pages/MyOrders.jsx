@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch, apiUrl } from '../config/api';
 
 export default function MyOrders() {
   const { user } = useAuth();
@@ -14,7 +15,7 @@ export default function MyOrders() {
 
   const fetchMyOrders = async () => {
     try {
-      const res = await fetch('/api/orders/my-orders');
+      const res = await apiFetch('/api/orders/my-orders');
       const data = await res.json();
       if (res.ok && data.success) {
         setOrders(data.orders || []);
@@ -139,7 +140,7 @@ export default function MyOrders() {
                       View Tax Invoice
                     </Link>
                     <a
-                      href={`/api/billing/receipt/${ord.orderNumber}/download-pdf`}
+                      href={apiUrl(`/api/billing/receipt/${ord.orderNumber}/download-pdf`)}
                       className="btn-order-action btn-download-pdf-sm"
                     >
                       Download PDF

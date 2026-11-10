@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { apiFetch } from '../config/api';
 
 export default function Checkout() {
   const { orderNumber } = useParams();
@@ -26,7 +27,7 @@ export default function Checkout() {
 
   const fetchOrder = async () => {
     try {
-      const res = await fetch(`/api/orders/${orderNumber}`);
+      const res = await apiFetch(`/api/orders/${orderNumber}`);
       const data = await res.json();
       if (res.ok && data.success) {
         setOrder(data.order);
@@ -51,7 +52,7 @@ export default function Checkout() {
     setProcessing(true);
 
     try {
-      const res = await fetch(`/api/payment/process/${orderNumber}`, {
+      const res = await apiFetch(`/api/payment/process/${orderNumber}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -4,7 +4,17 @@ const Artwork = require('../models/Artwork');
 const User = require('../models/User');
 
 const sampleDir = path.join(__dirname, '..', 'public', 'images', 'samples');
-if (!fs.existsSync(sampleDir)) fs.mkdirSync(sampleDir, { recursive: true });
+
+function ensureSampleDir() {
+  try {
+    if (!fs.existsSync(sampleDir)) {
+      fs.mkdirSync(sampleDir, { recursive: true });
+    }
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
 
 function createSampleSvg(filename, title, subtitle, styleColor = '#2b2b2b', accent = '#d4af37') {
   const filePath = path.join(sampleDir, filename);
@@ -75,16 +85,30 @@ function createSampleSvg(filename, title, subtitle, styleColor = '#2b2b2b', acce
     <text x="85" y="114" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="${accent}">${subtitle}</text>
   </svg>`;
 
-  fs.writeFileSync(filePath, svgContent, 'utf8');
+  if (ensureSampleDir()) {
+    try {
+      fs.writeFileSync(filePath, svgContent, 'utf8');
+    } catch (err) {
+      console.warn(`Could not write sample SVG (${filename}) on read-only filesystem:`, err.message);
+    }
+  }
   return `/images/samples/${filename}`;
 }
 
 async function seedInitialData() {
-  await User.seedAdmin('midhunrs727@gmail.com', 'admin123', 'mwdo klwl qkrp rxsy');
+  if (global.__studioSeeded) return;
+  if (global.__studioSeedPromise) {
+    return global.__studioSeedPromise;
+  }
 
-  const count = await Artwork.countDocuments();
-  if (count === 0) {
-    console.log('Seeding initial pencil portrait showcase gallery in MongoDB...');
+  global.__studioSeedPromise = (async () => {
+    const adminEmail = process.env.ADMIN_EMAIL || 'midhunrs727@gmail.com';
+    const adminPass = process.env.ADMIN_DEFAULT_PASS || 'admin123';
+    await User.seedAdmin(adminEmail, adminPass);
+
+    const count = await Artwork.countDocuments();
+    if (count === 0) {
+      console.log('Seeding initial pencil portrait showcase gallery in MongoDB...');
 
     const sampleArtworks = [
       {
@@ -183,8 +207,16 @@ async function seedInitialData() {
       });
     }
 
-    console.log(`Successfully seeded ${sampleArtworks.length} artworks into MongoDB.`);
-  }
+      console.log(`Successfully seeded ${sampleArtworks.length} artworks into MongoDB.`);
+    }
+
+    global.__studioSeeded = true;
+  })().catch((err) => {
+    global.__studioSeedPromise = null;
+    throw err;
+  });
+
+  return global.__studioSeedPromise;
 }
 
 module.exports = { seedInitialData };

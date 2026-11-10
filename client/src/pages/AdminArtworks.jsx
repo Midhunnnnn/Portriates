@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../config/api';
 
 const CATEGORIES = [
   'Hyper-Realistic',
@@ -36,7 +37,7 @@ export default function AdminArtworks() {
 
   const fetchArtworks = async () => {
     try {
-      const res = await fetch('/api/admin/artworks');
+      const res = await apiFetch('/api/admin/artworks');
       const data = await res.json();
       if (res.ok && data.success) {
         setArtworks(data.artworks || []);
@@ -92,7 +93,7 @@ export default function AdminArtworks() {
       payload.append('description', newArt.description);
       payload.append('featured', newArt.featured);
 
-      const res = await fetch('/api/admin/artworks/add', {
+      const res = await apiFetch('/api/admin/artworks/add', {
         method: 'POST',
         body: payload
       });
@@ -129,7 +130,7 @@ export default function AdminArtworks() {
     }
 
     try {
-      const res = await fetch('/api/admin/artworks/delete', {
+      const res = await apiFetch('/api/admin/artworks/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ artworkId })

@@ -1,18 +1,42 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
-// Ensure upload folders exist
-const orderUploadDir = path.join(__dirname, '..', 'public', 'uploads', 'orders');
-const artworkUploadDir = path.join(__dirname, '..', 'public', 'uploads', 'artworks');
+const isServerless = Boolean(process.env.VERCEL);
+const tmpUploadRoot = path.join(os.tmpdir(), 'midhun-portraits-uploads');
 
-if (!fs.existsSync(orderUploadDir)) fs.mkdirSync(orderUploadDir, { recursive: true });
-if (!fs.existsSync(artworkUploadDir)) fs.mkdirSync(artworkUploadDir, { recursive: true });
+// Locally write to public/uploads; on Vercel's read-only deployment FS, use /tmp
+// Note: /tmp on Vercel is ephemeral across cold starts — integrate Cloudinary for permanent storage.
+const orderUploadDir = isServerless
+  ? path.join(tmpUploadRoot, 'orders')
+  : path.join(__dirname, '..', 'public', 'uploads', 'orders');
+const artworkUploadDir = isServerless
+  ? path.join(tmpUploadRoot, 'artworks')
+  : path.join(__dirname, '..', 'public', 'uploads', 'artworks');
+
+function ensureUploadDir(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}
+
+try {
+  ensureUploadDir(orderUploadDir);
+  ensureUploadDir(artworkUploadDir);
+} catch (err) {
+  console.warn('Upload directory initialization warning:', err.message);
+}
 
 // Order reference photos storage
 const orderStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, orderUploadDir);
+    try {
+      ensureUploadDir(orderUploadDir);
+      cb(null, orderUploadDir);
+    } catch (err) {
+      cb(err);
+    }
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -24,7 +48,12 @@ const orderStorage = multer.diskStorage({
 // Artwork showcase storage
 const artworkStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, artworkUploadDir);
+    try {
+      ensureUploadDir(artworkUploadDir);
+      cb(null, artworkUploadDir);
+    } catch (err) {
+      cb(err);
+    }
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -58,7 +87,21 @@ const uploadArtworkImage = multer({
   fileFilter: imageFileFilter
 });
 
+// Helper hook for future Cloudinary integration (when CLOUDINARY_* env vars are configured)
+function getUploadedFileUrl(file, folder) {
+  if (!file) return null;
+  if (file.path && /^https?:\/\//i.test(file.path)) {
+    return file.path;
+  }
+  return `/uploads/${folder}/${file.filename}`;
+}
+
 module.exports = {
   uploadOrderPhoto,
-  uploadArtworkImage
+  uploadArtworkImage,
+  isServerless,
+  tmpUploadRoot,
+  orderUploadDir,
+  artworkUploadDir,
+  getUploadedFileUrl
 };

@@ -4,7 +4,16 @@ const fs = require('fs');
 const path = require('path');
 const net = require('net');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/pencil_portraits_studio';
+const DEFAULT_LOCAL_URI = 'mongodb://127.0.0.1:27017/pencil_portraits_studio';
+
+let cached = global.__mongooseConnCache;
+if (!cached) {
+  cached = global.__mongooseConnCache = { conn: null, promise: null };
+}
+
+function isLocalMongoUri(uri) {
+  return /^mongodb:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/i.test(uri || '');
+}
 
 // Helper to check if port 27017 is listening
 function isPortOpen(port = 27017, host = '127.0.0.1') {
@@ -63,17 +72,45 @@ async function ensureLocalMongo() {
 }
 
 async function connectDB() {
+  const isServerless = Boolean(process.env.VERCEL);
+  const mongoUri = process.env.MONGODB_URI || (!isServerless ? DEFAULT_LOCAL_URI : '');
+
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI environment variable is required in Vercel production.');
+  }
+
+  if (cached.conn && mongoose.connection.readyState === 1) {
+    return cached.conn;
+  }
+
+  if (mongoose.connection.readyState === 1) {
+    cached.conn = mongoose.connection;
+    return cached.conn;
+  }
+
   try {
-    await ensureLocalMongo();
+    if (!cached.promise) {
+      cached.promise = (async () => {
+        if (!isServerless && isLocalMongoUri(mongoUri)) {
+          await ensureLocalMongo();
+        }
 
-    await mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000
-    });
+        await mongoose.connect(mongoUri, {
+          serverSelectionTimeoutMS: isServerless ? 10000 : 5000
+        });
 
-    console.log(`Connected to MongoDB database at: ${MONGODB_URI}`);
+        console.log(`Connected to MongoDB database`);
+        return mongoose.connection;
+      })();
+    }
+
+    cached.conn = await cached.promise;
+    return cached.conn;
   } catch (err) {
+    cached.promise = null;
+    cached.conn = null;
     console.error('MongoDB connection error:', err.message);
-    console.error('Tip: Make sure MongoDB service is active or configure MONGODB_URI in .env');
+    console.error('Tip: Make sure MongoDB service is active or configure MONGODB_URI in environment variables');
     throw err;
   }
 }

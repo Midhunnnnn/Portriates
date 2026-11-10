@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const emailUser = process.env.EMAIL_USER || 'midhunrs727@gmail.com';
-const rawPass = process.env.EMAIL_PASS || 'mwdo klwl qkrp rxsy';
+const rawPass = process.env.EMAIL_PASS || process.env.EMAIL_PASS_SPACED || 'mwdo klwl qkrp rxsy';
 // Clean app password (remove spaces if any)
 const emailPass = rawPass.replace(/\s+/g, '');
 
@@ -12,6 +12,9 @@ const transporter = nodemailer.createTransport({
     user: emailUser,
     pass: emailPass
   },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
   tls: {
     rejectUnauthorized: false
   }
