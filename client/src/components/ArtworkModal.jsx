@@ -35,7 +35,7 @@ export default function ArtworkModal({ artwork, onClose }) {
               </div>
               <div className="spec-row">
                 <span className="spec-label">Dimensions</span>
-                <span className="spec-value">{artwork.dimensions || 'A3 (11.7 x 16.5 in)'}</span>
+                <span className="spec-value">{artwork.size || artwork.dimensions || 'A3 (11.7 x 16.5 in)'}</span>
               </div>
               <div className="spec-row">
                 <span className="spec-label">Paper</span>
@@ -53,7 +53,7 @@ export default function ArtworkModal({ artwork, onClose }) {
 
             <div className="modal-actions-box">
               <Link
-                to={`/give-order?medium=${encodeURIComponent(artwork.medium || 'Graphite Pencil')}&size=${encodeURIComponent(artwork.dimensions || 'A3 (11.7 x 16.5 in)')}`}
+                to={`/give-order?medium=${encodeURIComponent(artwork.medium || 'Graphite Pencil')}&size=${encodeURIComponent(artwork.size || artwork.dimensions || 'A3 (11.7 x 16.5 in)')}`}
                 className="btn-modal-order"
                 onClick={onClose}
               >

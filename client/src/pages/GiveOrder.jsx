@@ -87,20 +87,27 @@ export default function GiveOrder() {
 
   const calculatePrice = async () => {
     try {
-      const res = await apiFetch('/api/orders/calculate-price', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          size: formData.size,
-          medium: formData.medium,
-          faces: formData.faces,
-          framing: formData.framing,
-          isExpress: formData.isExpress
-        })
+      const params = new URLSearchParams({
+        size: formData.size,
+        medium: formData.medium,
+        num_faces: String(formData.faces),
+        frame_type: formData.framing
       });
+      const res = await apiFetch(`/api/orders/calculate-price?${params.toString()}`);
       const data = await res.json();
-      if (res.ok && data.success) {
-        setPricing(data.pricing);
+      if (res.ok && data.success && data.pricing) {
+        const p = data.pricing;
+        setPricing({
+          basePrice: p.basePrice ?? 0,
+          mediumSurcharge: p.mediumSurcharge ?? 0,
+          facesSurcharge: p.facesSurcharge ?? p.facesExtra ?? 0,
+          framingPrice: p.framingPrice ?? p.framePrice ?? 0,
+          expressFee: p.expressFee ?? 0,
+          shippingFee: p.shippingFee ?? p.shippingCharge ?? 0,
+          subtotal: p.subtotal ?? 0,
+          tax: p.tax ?? p.taxAmount ?? 0,
+          total: p.total ?? p.totalAmount ?? 0
+        });
       }
     } catch (err) {
       console.error('Price calculation error:', err);
@@ -144,17 +151,16 @@ export default function GiveOrder() {
     setLoading(true);
     try {
       const payload = new FormData();
-      payload.append('referencePhoto', referenceFile);
-      payload.append('size', formData.size);
-      payload.append('medium', formData.medium);
-      payload.append('faces', formData.faces);
-      payload.append('framing', formData.framing);
-      payload.append('isExpress', formData.isExpress);
-      payload.append('specialInstructions', formData.specialInstructions);
-      payload.append('customerName', formData.customerName);
-      payload.append('customerEmail', formData.customerEmail);
-      payload.append('customerPhone', formData.customerPhone);
-      payload.append('shippingAddress', formData.shippingAddress);
+      payload.append('reference_photo', referenceFile);
+      payload.append('portrait_size', formData.size);
+      payload.append('portrait_medium', formData.medium);
+      payload.append('num_faces', formData.faces);
+      payload.append('frame_type', formData.framing);
+      payload.append('special_instructions', formData.specialInstructions);
+      payload.append('customer_name', formData.customerName);
+      payload.append('customer_email', formData.customerEmail);
+      payload.append('customer_phone', formData.customerPhone);
+      payload.append('shipping_address', formData.shippingAddress);
       payload.append('city', formData.city);
       payload.append('state', formData.state);
       payload.append('pincode', formData.pincode);
@@ -166,11 +172,11 @@ export default function GiveOrder() {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Failed to place commission request');
+        throw new Error(data.message || data.error || 'Failed to place commission request');
       }
 
       // Navigate to checkout/payment page
-      navigate(`/checkout/${data.order.orderNumber}`);
+      navigate(`/checkout/${data.order?.order_number || data.orderNumber}`);
     } catch (err) {
       setError(err.message || 'Error submitting order');
     } finally {

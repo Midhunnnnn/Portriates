@@ -21,7 +21,7 @@ export default function Receipt() {
       if (res.ok && data.success) {
         setOrder(data.order);
       } else {
-        setError(data.message || 'Receipt could not be loaded');
+        setError(data.message || data.error || 'Receipt could not be loaded');
       }
     } catch (err) {
       setError('Failed to fetch billing receipt');
@@ -48,9 +48,9 @@ export default function Receipt() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setEmailStatus('Receipt and PDF invoice have been resent to ' + order.customerEmail);
+        setEmailStatus('Receipt and PDF invoice have been resent to ' + order.customer_email);
       } else {
-        setEmailStatus('Error resending email: ' + (data.message || 'Unknown error'));
+        setEmailStatus('Error resending email: ' + (data.message || data.error || 'Unknown error'));
       }
     } catch (err) {
       setEmailStatus('Network error while resending email receipt.');
@@ -91,7 +91,7 @@ export default function Receipt() {
           <div>
             <strong>Payment Confirmed — Commission Underway</strong>
             <p className="banner-sub">
-              An official PDF receipt has been sent to <strong>{order.customerEmail}</strong>.
+              An official PDF receipt has been sent to <strong>{order.customer_email}</strong>.
             </p>
           </div>
         </div>
@@ -137,12 +137,12 @@ export default function Receipt() {
             <h2 className="invoice-title">TAX INVOICE</h2>
             <div className="invoice-meta-item">
               <span className="meta-key">Invoice / Order #:</span>
-              <span className="meta-val"><strong>{order.orderNumber}</strong></span>
+              <span className="meta-val"><strong>{order.order_number}</strong></span>
             </div>
             <div className="invoice-meta-item">
               <span className="meta-key">Invoice Date:</span>
               <span className="meta-val">
-                {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                {new Date(order.created_at).toLocaleDateString('en-IN', {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric'
@@ -151,12 +151,12 @@ export default function Receipt() {
             </div>
             <div className="invoice-meta-item">
               <span className="meta-key">Transaction Ref:</span>
-              <span className="meta-val">{order.transactionId || 'TXN-ONLINE-' + order.orderNumber}</span>
+              <span className="meta-val">{order.transaction_id || 'TXN-ONLINE-' + order.order_number}</span>
             </div>
             <div className="invoice-meta-item">
               <span className="meta-key">Payment Status:</span>
               <span className="meta-val status-paid-text">
-                <strong>{order.paymentStatus || 'PAID'}</strong>
+                <strong>{order.payment_status || 'Paid'}</strong>
               </span>
             </div>
           </div>
@@ -168,14 +168,14 @@ export default function Receipt() {
         <div className="invoice-parties-row">
           <div className="party-col">
             <h4 className="party-heading">Commissioned By (Client):</h4>
-            <p className="party-name"><strong>{order.customerName}</strong></p>
-            <p className="party-detail">{order.customerEmail}</p>
-            <p className="party-detail">{order.customerPhone}</p>
+            <p className="party-name"><strong>{order.customer_name}</strong></p>
+            <p className="party-detail">{order.customer_email}</p>
+            <p className="party-detail">{order.customer_phone}</p>
           </div>
 
           <div className="party-col">
             <h4 className="party-heading">Insured Delivery Destination:</h4>
-            <p className="party-address">{order.shippingAddress}</p>
+            <p className="party-address">{order.shipping_address}</p>
             <p className="party-detail">
               {order.city}, {order.state} - {order.pincode}
             </p>
@@ -202,10 +202,10 @@ export default function Receipt() {
                   <strong>Bespoke Handcrafted Portrait</strong>
                   <div className="table-subtext">Single Subject Drawing on 300 GSM Fabriano Cotton Paper</div>
                 </td>
-                <td>{order.size}</td>
+                <td>{order.portrait_size}</td>
                 <td>1</td>
-                <td>₹{order.basePrice?.toLocaleString('en-IN')}</td>
-                <td>₹{order.basePrice?.toLocaleString('en-IN')}</td>
+                <td>₹{order.base_price?.toLocaleString('en-IN')}</td>
+                <td>₹{order.base_price?.toLocaleString('en-IN')}</td>
               </tr>
 
               {/* Medium formulation */}
@@ -215,7 +215,7 @@ export default function Receipt() {
                     <strong>Medium Surcharge</strong>
                     <div className="table-subtext">Specialized artistic medium formula</div>
                   </td>
-                  <td>{order.medium}</td>
+                  <td>{order.portrait_medium}</td>
                   <td>1</td>
                   <td>₹{order.mediumSurcharge?.toLocaleString('en-IN')}</td>
                   <td>₹{order.mediumSurcharge?.toLocaleString('en-IN')}</td>
@@ -223,30 +223,30 @@ export default function Receipt() {
               )}
 
               {/* Additional Faces */}
-              {order.facesSurcharge > 0 && (
+              {order.faces_extra > 0 && (
                 <tr>
                   <td>
                     <strong>Additional Subject(s) Crafting</strong>
                     <div className="table-subtext">Detailed facial feature rendering</div>
                   </td>
-                  <td>{order.faces} Subjects Total</td>
+                  <td>{order.num_faces} Subjects Total</td>
                   <td>1</td>
-                  <td>₹{order.facesSurcharge?.toLocaleString('en-IN')}</td>
-                  <td>₹{order.facesSurcharge?.toLocaleString('en-IN')}</td>
+                  <td>₹{order.faces_extra?.toLocaleString('en-IN')}</td>
+                  <td>₹{order.faces_extra?.toLocaleString('en-IN')}</td>
                 </tr>
               )}
 
               {/* Framing */}
-              {order.framingPrice > 0 && (
+              {order.frame_price > 0 && (
                 <tr>
                   <td>
                     <strong>Custom Archival Framing</strong>
                     <div className="table-subtext">Museum teak/matte wood with acrylic glass</div>
                   </td>
-                  <td>{order.framing}</td>
+                  <td>{order.frame_type}</td>
                   <td>1</td>
-                  <td>₹{order.framingPrice?.toLocaleString('en-IN')}</td>
-                  <td>₹{order.framingPrice?.toLocaleString('en-IN')}</td>
+                  <td>₹{order.frame_price?.toLocaleString('en-IN')}</td>
+                  <td>₹{order.frame_price?.toLocaleString('en-IN')}</td>
                 </tr>
               )}
 
@@ -293,7 +293,7 @@ export default function Receipt() {
           <div className="invoice-totals-box">
             <div className="total-calc-line">
               <span>Subtotal:</span>
-              <span>₹{order.totalPrice?.toLocaleString('en-IN')}</span>
+              <span>₹{order.total_amount?.toLocaleString('en-IN')}</span>
             </div>
             <div className="total-calc-line">
               <span>IGST / CGST (0% Fine Art Exemption):</span>
@@ -306,10 +306,10 @@ export default function Receipt() {
             <div className="total-divider"></div>
             <div className="total-calc-line grand-total-line">
               <span>Total Paid:</span>
-              <span>₹{order.totalPrice?.toLocaleString('en-IN')}</span>
+              <span>₹{order.total_amount?.toLocaleString('en-IN')}</span>
             </div>
             <div className="payment-method-indicator">
-              Payment Method: <strong>{order.paymentMethod || 'Online Transfer'}</strong>
+              Payment Method: <strong>{order.payment_method || 'Online Transfer'}</strong>
             </div>
           </div>
         </div>

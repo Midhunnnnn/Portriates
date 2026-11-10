@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
-      throw new Error(data.message || 'Login failed');
+      throw new Error(data.message || data.error || 'Login failed');
     }
     setUser(data.user);
     return data;
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
-      throw new Error(data.message || 'Admin authentication failed');
+      throw new Error(data.message || data.error || 'Admin authentication failed');
     }
     setUser(data.user);
     return data;
@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }) => {
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
-      throw new Error(data.message || 'Registration failed');
+      throw new Error(data.message || data.error || 'Registration failed');
     }
     return data;
   };
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }) => {
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
-      throw new Error(data.message || 'OTP verification failed');
+      throw new Error(data.message || data.error || 'OTP verification failed');
     }
     setUser(data.user);
     return data;
@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }) => {
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
-      throw new Error(data.message || 'Failed to resend OTP');
+      throw new Error(data.message || data.error || 'Failed to resend OTP');
     }
     return data;
   };

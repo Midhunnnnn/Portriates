@@ -148,7 +148,9 @@ app.use('/admin', adminRoutes);
 app.use((err, req, res, next) => {
   console.error('Unhandled Server Error:', err);
   if (req.path.startsWith('/api')) {
-    return res.status(500).json({ error: err.message || 'Server Error' });
+    const statusCode = err.status || (err.name === 'MulterError' ? 400 : 500);
+    const errorMsg = err.message || 'Server Error';
+    return res.status(statusCode).json({ success: false, error: errorMsg, message: errorMsg });
   }
   res.status(500).send(`<h3>Server Error</h3><p>${err.message}</p>`);
 });

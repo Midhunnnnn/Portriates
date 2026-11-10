@@ -42,7 +42,7 @@ export default function AdminArtworks() {
       if (res.ok && data.success) {
         setArtworks(data.artworks || []);
       } else {
-        setError(data.message || 'Failed to load artworks');
+        setError(data.message || data.error || 'Failed to load artworks');
       }
     } catch (err) {
       setError('Error communicating with artwork database');
@@ -84,11 +84,11 @@ export default function AdminArtworks() {
     setSubmitting(true);
     try {
       const payload = new FormData();
-      payload.append('image', artFile);
+      payload.append('artwork_image', artFile);
       payload.append('title', newArt.title);
       payload.append('category', newArt.category);
       payload.append('price', newArt.price);
-      payload.append('dimensions', newArt.dimensions);
+      payload.append('size', newArt.dimensions);
       payload.append('medium', newArt.medium);
       payload.append('description', newArt.description);
       payload.append('featured', newArt.featured);
@@ -100,7 +100,7 @@ export default function AdminArtworks() {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Failed to add artwork');
+        throw new Error(data.message || data.error || 'Failed to add artwork');
       }
 
       setSuccess(`Artwork "${newArt.title}" has been published to the gallery!`);
@@ -133,14 +133,14 @@ export default function AdminArtworks() {
       const res = await apiFetch('/api/admin/artworks/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ artworkId })
+        body: JSON.stringify({ id: artworkId })
       });
       const data = await res.json();
       if (res.ok && data.success) {
         setSuccess(`Artwork "${title}" has been removed.`);
         setArtworks((prev) => prev.filter((a) => (a._id !== artworkId && a.id !== artworkId)));
       } else {
-        setError(data.message || 'Could not delete artwork');
+        setError(data.message || data.error || 'Could not delete artwork');
       }
     } catch (err) {
       setError('Error deleting artwork');
@@ -349,7 +349,7 @@ export default function AdminArtworks() {
                       alt={art.title}
                       className="admin-art-thumb"
                     />
-                    {art.featured && (
+                    {Boolean(art.featured) && (
                       <span className="featured-chip-block">Featured</span>
                     )}
                   </div>
@@ -364,7 +364,7 @@ export default function AdminArtworks() {
 
                     <h4 className="admin-art-title">{art.title}</h4>
                     <div className="admin-art-specs">
-                      <span>{art.dimensions}</span>
+                      <span>{art.size || art.dimensions}</span>
                       <span>•</span>
                       <span>{art.medium}</span>
                     </div>

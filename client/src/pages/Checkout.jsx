@@ -31,13 +31,13 @@ export default function Checkout() {
       const data = await res.json();
       if (res.ok && data.success) {
         setOrder(data.order);
-        setShippingAddress(data.order.shippingAddress || '');
+        setShippingAddress(data.order.shipping_address || '');
         setCity(data.order.city || '');
         setState(data.order.state || '');
         setPincode(data.order.pincode || '');
-        setCustomerPhone(data.order.customerPhone || '');
+        setCustomerPhone(data.order.customer_phone || '');
       } else {
-        setError(data.message || 'Order not found');
+        setError(data.message || data.error || 'Order not found');
       }
     } catch (err) {
       setError('Failed to retrieve order details');
@@ -52,23 +52,29 @@ export default function Checkout() {
     setProcessing(true);
 
     try {
+      const paymentMethodMap = {
+        UPI: 'UPI Online Payment',
+        Card: 'Credit/Debit Card',
+        NetBanking: 'Net Banking',
+        COD: 'Cash on Delivery (Pay on Confirmation)'
+      };
       const res = await apiFetch(`/api/payment/process/${orderNumber}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          paymentMethod,
-          upiId,
-          shippingAddress,
+          customer_name: order.customer_name,
+          customer_phone: customerPhone,
+          shipping_address: shippingAddress,
           city,
           state,
           pincode,
-          customerPhone
+          payment_method: paymentMethodMap[paymentMethod] || paymentMethod
         })
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Payment processing failed');
+        throw new Error(data.message || data.error || 'Payment processing failed');
       }
 
       // Redirect to billing & receipt page
@@ -127,10 +133,10 @@ export default function Checkout() {
           <div className="checkout-card-block">
             <h3 className="checkout-card-title">Commission Snapshot</h3>
             <div className="snapshot-grid">
-              {order.referencePhoto && (
+              {order.reference_photo && (
                 <div className="snapshot-photo-box">
                   <img
-                    src={order.referencePhoto}
+                    src={order.reference_photo}
                     alt="Commission Reference"
                     className="snapshot-thumb"
                   />
@@ -140,23 +146,23 @@ export default function Checkout() {
               <div className="snapshot-details">
                 <div className="snapshot-row">
                   <span className="snap-label">Order Ref:</span>
-                  <span className="snap-val"><strong>{order.orderNumber}</strong></span>
+                  <span className="snap-val"><strong>{order.order_number}</strong></span>
                 </div>
                 <div className="snapshot-row">
                   <span className="snap-label">Medium:</span>
-                  <span className="snap-val">{order.medium}</span>
+                  <span className="snap-val">{order.portrait_medium}</span>
                 </div>
                 <div className="snapshot-row">
                   <span className="snap-label">Dimension:</span>
-                  <span className="snap-val">{order.size}</span>
+                  <span className="snap-val">{order.portrait_size}</span>
                 </div>
                 <div className="snapshot-row">
                   <span className="snap-label">Framing:</span>
-                  <span className="snap-val">{order.framing}</span>
+                  <span className="snap-val">{order.frame_type}</span>
                 </div>
                 <div className="snapshot-row">
                   <span className="snap-label">Subjects:</span>
-                  <span className="snap-val">{order.faces} {Number(order.faces) === 1 ? 'Face' : 'Faces'}</span>
+                  <span className="snap-val">{order.num_faces} {Number(order.num_faces) === 1 ? 'Face' : 'Faces'}</span>
                 </div>
               </div>
             </div>
@@ -170,7 +176,7 @@ export default function Checkout() {
               <input
                 type="text"
                 className="form-input-block"
-                value={order.customerName}
+                value={order.customer_name}
                 disabled
               />
             </div>
@@ -322,7 +328,7 @@ export default function Checkout() {
                 <div className="upi-qr-row">
                   <div className="upi-qr-box">
                     <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi://pay?pa=midhunrs@oksbi&pn=Midhun%20RS%20Art%20Studio&am=${order.totalPrice}&cu=INR`}
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi://pay?pa=midhunrs@oksbi&pn=Midhun%20RS%20Art%20Studio&am=${order.total_amount}&cu=INR`}
                       alt="UPI QR Code"
                       className="qr-image"
                     />
@@ -395,8 +401,8 @@ export default function Checkout() {
 
             <div className="summary-breakdown-table">
               <div className="breakdown-row">
-                <span>Portrait ({order.size})</span>
-                <span>₹{order.basePrice?.toLocaleString('en-IN')}</span>
+                <span>Portrait ({order.portrait_size})</span>
+                <span>₹{order.base_price?.toLocaleString('en-IN')}</span>
               </div>
               {order.mediumSurcharge > 0 && (
                 <div className="breakdown-row">
@@ -404,16 +410,16 @@ export default function Checkout() {
                   <span>+₹{order.mediumSurcharge?.toLocaleString('en-IN')}</span>
                 </div>
               )}
-              {order.facesSurcharge > 0 && (
+              {order.faces_extra > 0 && (
                 <div className="breakdown-row">
                   <span>Faces Surcharge</span>
-                  <span>+₹{order.facesSurcharge?.toLocaleString('en-IN')}</span>
+                  <span>+₹{order.faces_extra?.toLocaleString('en-IN')}</span>
                 </div>
               )}
-              {order.framingPrice > 0 && (
+              {order.frame_price > 0 && (
                 <div className="breakdown-row">
                   <span>Framing Cost</span>
-                  <span>+₹{order.framingPrice?.toLocaleString('en-IN')}</span>
+                  <span>+₹{order.frame_price?.toLocaleString('en-IN')}</span>
                 </div>
               )}
               {order.expressFee > 0 && (
@@ -431,7 +437,7 @@ export default function Checkout() {
 
               <div className="breakdown-row total-row">
                 <span className="total-label">Total to Authorize</span>
-                <span className="total-amount">₹{order.totalPrice?.toLocaleString('en-IN')}</span>
+                <span className="total-amount">₹{order.total_amount?.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
@@ -440,7 +446,7 @@ export default function Checkout() {
               className="btn-order-continue"
               disabled={processing}
             >
-              {processing ? 'Processing Payment & Invoicing...' : `Pay ₹${order.totalPrice?.toLocaleString('en-IN')} Now`}
+              {processing ? 'Processing Payment & Invoicing...' : `Pay ₹${order.total_amount?.toLocaleString('en-IN')} Now`}
             </button>
 
             <div className="checkout-security-badges">

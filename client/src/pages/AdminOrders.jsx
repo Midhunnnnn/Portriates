@@ -31,7 +31,7 @@ export default function AdminOrders() {
       if (res.ok && data.success) {
         setOrders(data.orders || []);
       } else {
-        setError(data.message || 'Failed to retrieve orders');
+        setError(data.message || data.error || 'Failed to retrieve orders');
       }
     } catch (err) {
       setError('Error communicating with studio server');
@@ -48,17 +48,17 @@ export default function AdminOrders() {
       const res = await apiFetch('/api/admin/orders/update-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, orderStatus: newStatus })
+        body: JSON.stringify({ orderId, order_status: newStatus })
       });
       const data = await res.json();
       if (res.ok && data.success) {
         setSuccess(`Order status updated to "${newStatus}" successfully.`);
         // Update local state
         setOrders((prev) =>
-          prev.map((o) => (o._id === orderId || o.id === orderId ? { ...o, orderStatus: newStatus } : o))
+          prev.map((o) => (o._id === orderId || o.id === orderId ? { ...o, order_status: newStatus } : o))
         );
       } else {
-        setError(data.message || 'Failed to update order status');
+        setError(data.message || data.error || 'Failed to update order status');
       }
     } catch (err) {
       setError('Network error while updating status');
@@ -110,12 +110,12 @@ export default function AdminOrders() {
       ) : (
         <div className="admin-orders-list">
           {orders.map((ord) => (
-            <div key={ord._id || ord.orderNumber} className="admin-order-card">
+            <div key={ord._id || ord.order_number} className="admin-order-card">
               <div className="admin-order-header-row">
                 <div className="order-primary-info">
-                  <span className="order-card-ref">Order Ref: <strong>{ord.orderNumber}</strong></span>
+                  <span className="order-card-ref">Order Ref: <strong>{ord.order_number}</strong></span>
                   <span className="order-date-text">
-                    Received: {new Date(ord.createdAt).toLocaleDateString('en-IN', {
+                    Received: {new Date(ord.created_at).toLocaleDateString('en-IN', {
                       year: 'numeric',
                       month: 'short',
                       day: 'numeric'
@@ -126,12 +126,15 @@ export default function AdminOrders() {
                 <div className="order-status-control-box">
                   <label className="status-control-label">Milestone Status:</label>
                   <select
-                    value={ord.orderStatus || 'Pending'}
+                    value={ord.order_status || 'Pending'}
                     onChange={(e) => handleStatusChange(ord._id || ord.id, e.target.value)}
                     disabled={updatingId === (ord._id || ord.id)}
                     className="admin-status-select"
                   >
-                    {STATUS_OPTIONS.map((st) => (
+                    {(ord.order_status && !STATUS_OPTIONS.includes(ord.order_status)
+                      ? [ord.order_status, ...STATUS_OPTIONS]
+                      : STATUS_OPTIONS
+                    ).map((st) => (
                       <option key={st} value={st}>
                         {st}
                       </option>
@@ -143,14 +146,14 @@ export default function AdminOrders() {
               <div className="admin-order-grid">
                 {/* Reference Photo Box */}
                 <div className="admin-photo-col">
-                  {ord.referencePhoto ? (
+                  {ord.reference_photo ? (
                     <div
                       className="admin-photo-wrapper"
-                      onClick={() => setPreviewPhoto(ord.referencePhoto)}
+                      onClick={() => setPreviewPhoto(ord.reference_photo)}
                       title="Click to inspect full resolution photograph"
                     >
                       <img
-                        src={ord.referencePhoto}
+                        src={ord.reference_photo}
                         alt="Client Reference"
                         className="admin-photo-thumb"
                       />
@@ -165,19 +168,19 @@ export default function AdminOrders() {
                 <div className="admin-details-col">
                   <div className="detail-field">
                     <span className="field-name">Dimension:</span>
-                    <span className="field-value"><strong>{ord.size}</strong></span>
+                    <span className="field-value"><strong>{ord.portrait_size}</strong></span>
                   </div>
                   <div className="detail-field">
                     <span className="field-name">Medium:</span>
-                    <span className="field-value">{ord.medium}</span>
+                    <span className="field-value">{ord.portrait_medium}</span>
                   </div>
                   <div className="detail-field">
                     <span className="field-name">Subjects / Faces:</span>
-                    <span className="field-value">{ord.faces} Face(s)</span>
+                    <span className="field-value">{ord.num_faces} Face(s)</span>
                   </div>
                   <div className="detail-field">
                     <span className="field-name">Framing Choice:</span>
-                    <span className="field-value">{ord.framing}</span>
+                    <span className="field-value">{ord.frame_type}</span>
                   </div>
                   {ord.isExpress && (
                     <div className="detail-field">
@@ -185,10 +188,10 @@ export default function AdminOrders() {
                       <span className="field-value gold-text"><strong>VIP Express Priority</strong></span>
                     </div>
                   )}
-                  {ord.specialInstructions && (
+                  {ord.special_instructions && (
                     <div className="detail-field instructions-box">
                       <span className="field-name">Client Notes:</span>
-                      <p className="field-value client-notes-text">{ord.specialInstructions}</p>
+                      <p className="field-value client-notes-text">{ord.special_instructions}</p>
                     </div>
                   )}
                 </div>
@@ -197,20 +200,20 @@ export default function AdminOrders() {
                 <div className="admin-shipping-col">
                   <div className="detail-field">
                     <span className="field-name">Client:</span>
-                    <span className="field-value"><strong>{ord.customerName}</strong></span>
+                    <span className="field-value"><strong>{ord.customer_name}</strong></span>
                   </div>
                   <div className="detail-field">
                     <span className="field-name">Email:</span>
-                    <span className="field-value">{ord.customerEmail}</span>
+                    <span className="field-value">{ord.customer_email}</span>
                   </div>
                   <div className="detail-field">
                     <span className="field-name">Phone:</span>
-                    <span className="field-value">{ord.customerPhone}</span>
+                    <span className="field-value">{ord.customer_phone}</span>
                   </div>
                   <div className="detail-field">
                     <span className="field-name">Address:</span>
                     <span className="field-value">
-                      {ord.shippingAddress}, {ord.city}, {ord.state} - {ord.pincode}
+                      {ord.shipping_address}, {ord.city}, {ord.state} - {ord.pincode}
                     </span>
                   </div>
                 </div>
@@ -218,25 +221,25 @@ export default function AdminOrders() {
                 {/* Financial Summary & Actions */}
                 <div className="admin-financial-col">
                   <div className="financial-amount">
-                    ₹{ord.totalPrice?.toLocaleString('en-IN')}
+                    ₹{ord.total_amount?.toLocaleString('en-IN')}
                   </div>
-                  <div className={`status-block ${ord.paymentStatus === 'PAID' ? 'status-block-paid' : 'status-block-pending'}`} style={{ marginBottom: '0.75rem' }}>
-                    Payment: {ord.paymentStatus || 'Pending'}
+                  <div className={`status-block ${ord.payment_status?.toLowerCase() === 'paid' ? 'status-block-paid' : 'status-block-pending'}`} style={{ marginBottom: '0.75rem' }}>
+                    Payment: {ord.payment_status || 'Pending'}
                   </div>
-                  <div className="table-subtext">Method: {ord.paymentMethod || 'Online'}</div>
-                  {ord.transactionId && (
-                    <div className="table-subtext">TXN: {ord.transactionId}</div>
+                  <div className="table-subtext">Method: {ord.payment_method || 'Online'}</div>
+                  {ord.transaction_id && (
+                    <div className="table-subtext">TXN: {ord.transaction_id}</div>
                   )}
 
                   <div className="order-card-actions">
                     <Link
-                      to={`/receipt/${ord.orderNumber}`}
+                      to={`/receipt/${ord.order_number}`}
                       className="btn-admin-view-receipt"
                     >
                       Tax Invoice
                     </Link>
                     <a
-                      href={apiUrl(`/api/billing/receipt/${ord.orderNumber}/download-pdf`)}
+                      href={apiUrl(`/api/billing/receipt/${ord.order_number}/download-pdf`)}
                       className="btn-admin-pdf-btn"
                     >
                       PDF Receipt

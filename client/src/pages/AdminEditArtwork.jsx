@@ -47,14 +47,14 @@ export default function AdminEditArtwork() {
           title: art.title || '',
           category: art.category || 'Hyper-Realistic',
           price: art.price || '',
-          dimensions: art.dimensions || '',
+          dimensions: art.size || art.dimensions || '',
           medium: art.medium || '',
           description: art.description || '',
           featured: Boolean(art.featured)
         });
         setExistingImageUrl(art.image_url || '');
       } else {
-        setError(data.message || 'Artwork not found');
+        setError(data.message || data.error || 'Artwork not found');
       }
     } catch (err) {
       setError('Failed to load artwork for editing');
@@ -99,13 +99,13 @@ export default function AdminEditArtwork() {
       payload.append('title', formData.title);
       payload.append('category', formData.category);
       payload.append('price', formData.price);
-      payload.append('dimensions', formData.dimensions);
+      payload.append('size', formData.dimensions);
       payload.append('medium', formData.medium);
       payload.append('description', formData.description);
       payload.append('featured', formData.featured);
 
       if (newImageFile) {
-        payload.append('image', newImageFile);
+        payload.append('artwork_image', newImageFile);
       }
 
       const res = await apiFetch(`/api/admin/artworks/edit/${id}`, {
@@ -115,7 +115,7 @@ export default function AdminEditArtwork() {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Failed to save changes');
+        throw new Error(data.message || data.error || 'Failed to save changes');
       }
 
       setSuccess('All artwork details have been successfully updated!');

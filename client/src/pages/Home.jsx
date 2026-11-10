@@ -158,7 +158,7 @@ export default function Home() {
                   <h3 className="card-artwork-title">{artwork.title}</h3>
 
                   <div className="card-bottom-row">
-                    <div className="card-size-label">{artwork.dimensions}</div>
+                    <div className="card-size-label">{artwork.size || artwork.dimensions}</div>
                     <div className="card-price-tag">
                       ₹{Number(artwork.price || 0).toLocaleString('en-IN')}
                     </div>

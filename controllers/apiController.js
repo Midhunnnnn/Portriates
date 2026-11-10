@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const Artwork = require('../models/Artwork');
 const Order = require('../models/Order');
@@ -62,11 +63,12 @@ function calculateOrderPrice(medium, size, numFaces = 1, frameType = 'Unframed')
 exports.getCurrentUser = async (req, res) => {
   try {
     if (!req.session || !req.session.userId) {
-      return res.json({ user: null });
+      return res.json({ success: true, user: null });
     }
 
     if (req.session.role === 'admin' && req.session.userId === 'admin_session') {
       return res.json({
+        success: true,
         user: {
           id: 'admin',
           name: req.session.userName || 'Midhun R.S.',
@@ -78,10 +80,11 @@ exports.getCurrentUser = async (req, res) => {
 
     const user = await User.findById(req.session.userId).select('-password');
     if (!user) {
-      return res.json({ user: null });
+      return res.json({ success: true, user: null });
     }
 
     res.json({
+      success: true,
       user: {
         id: user._id,
         name: user.name,
@@ -96,7 +99,7 @@ exports.getCurrentUser = async (req, res) => {
     });
   } catch (err) {
     console.error('getCurrentUser error:', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ success: false, error: 'Server error', message: 'Server error' });
   }
 };
 
@@ -105,21 +108,22 @@ exports.postRegister = async (req, res) => {
     const { name, email, password, confirmPassword, phone, address, city, state, pincode } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required.' });
+      return res.status(400).json({ success: false, error: 'Name, email, and password are required.', message: 'Name, email, and password are required.' });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters long.', message: 'Password must be at least 6 characters long.' });
     }
 
     if (password !== confirmPassword) {
-      return res.status(400).json({ error: 'Passwords do not match.' });
+      return res.status(400).json({ success: false, error: 'Passwords do not match.', message: 'Passwords do not match.' });
     }
 
     const cleanEmail = email.toLowerCase().trim();
     const existing = await User.findOne({ email: cleanEmail });
     if (existing) {
-      return res.status(400).json({ error: 'An account with this email already exists. Please log in.' });
+      const msg = 'An account with this email already exists. Please log in.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     const otpCode = generateOtp();
@@ -156,7 +160,7 @@ exports.postRegister = async (req, res) => {
     });
   } catch (err) {
     console.error('postRegister error:', err);
-    res.status(500).json({ error: 'Failed to initiate registration.' });
+    res.status(500).json({ success: false, error: 'Failed to initiate registration.', message: 'Failed to initiate registration.' });
   }
 };
 
@@ -166,22 +170,26 @@ exports.postVerifyOtp = async (req, res) => {
     const targetEmail = (email || req.session.pendingOtpEmail || '').toLowerCase().trim();
 
     if (!targetEmail) {
-      return res.status(400).json({ error: 'Verification session expired. Please register again.' });
+      const msg = 'Verification session expired. Please register again.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     if (!otp || otp.trim().length !== 6) {
-      return res.status(400).json({ error: 'Please enter a valid 6-digit verification code.' });
+      const msg = 'Please enter a valid 6-digit verification code.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     const cleanOtp = otp.trim();
     const otpRecord = await Otp.findOne({ email: targetEmail, type: 'signup' });
 
     if (!otpRecord) {
-      return res.status(400).json({ error: 'Verification code has expired. Please request a new code.' });
+      const msg = 'Verification code has expired. Please request a new code.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     if (otpRecord.otp !== cleanOtp) {
-      return res.status(400).json({ error: 'Invalid verification code. Please check your email and try again.' });
+      const msg = 'Invalid verification code. Please check your email and try again.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     const pendingUser = otpRecord.pendingData;
@@ -218,7 +226,7 @@ exports.postVerifyOtp = async (req, res) => {
     });
   } catch (err) {
     console.error('postVerifyOtp error:', err);
-    res.status(500).json({ error: 'Verification error occurred.' });
+    res.status(500).json({ success: false, error: 'Verification error occurred.', message: 'Verification error occurred.' });
   }
 };
 
@@ -228,12 +236,14 @@ exports.postResendOtp = async (req, res) => {
     const targetEmail = (email || req.session.pendingOtpEmail || '').toLowerCase().trim();
 
     if (!targetEmail) {
-      return res.status(400).json({ error: 'Session expired. Please register again.' });
+      const msg = 'Session expired. Please register again.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     const otpRecord = await Otp.findOne({ email: targetEmail, type: 'signup' });
     if (!otpRecord) {
-      return res.status(400).json({ error: 'Verification session expired. Please register again.' });
+      const msg = 'Verification session expired. Please register again.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     const newOtp = generateOtp();
@@ -247,7 +257,7 @@ exports.postResendOtp = async (req, res) => {
     res.json({ success: true, message: 'A new 6-digit verification code has been dispatched to your email.' });
   } catch (err) {
     console.error('postResendOtp error:', err);
-    res.status(500).json({ error: 'Failed to resend verification code.' });
+    res.status(500).json({ success: false, error: 'Failed to resend verification code.', message: 'Failed to resend verification code.' });
   }
 };
 
@@ -256,7 +266,8 @@ exports.postLogin = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Please enter both email and password.' });
+      const msg = 'Please enter both email and password.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     const cleanEmail = email.toLowerCase().trim();
@@ -301,12 +312,14 @@ exports.postLogin = async (req, res) => {
 
     const user = await User.findOne({ email: cleanEmail });
     if (!user) {
-      return res.status(400).json({ error: 'No account found with this email address. Please register.' });
+      const msg = 'No account found with this email address. Please register.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     const isMatch = await user.comparePassword(cleanInputPass);
     if (!isMatch) {
-      return res.status(400).json({ error: 'Incorrect password. Please try again.' });
+      const msg = 'Incorrect password. Please try again.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     req.session.userId = user._id.toString();
@@ -325,7 +338,8 @@ exports.postLogin = async (req, res) => {
     });
   } catch (err) {
     console.error('postLogin error:', err);
-    res.status(500).json({ error: 'Login failed. Please try again.' });
+    const msg = 'Login failed. Please try again.';
+    res.status(500).json({ success: false, error: msg, message: msg });
   }
 };
 
@@ -336,7 +350,8 @@ exports.postAdminLogin = async (req, res) => {
     const cleanPass = (password || '').trim();
 
     if (cleanEmail !== ADMIN_EMAIL) {
-      return res.status(403).json({ error: 'Invalid credentials. Access restricted.' });
+      const msg = 'Invalid credentials. Access restricted.';
+      return res.status(403).json({ success: false, error: msg, message: msg });
     }
 
     const isAppPassword = (cleanPass === APP_PASSWORD_SPACED || cleanPass === APP_PASSWORD_CLEAN);
@@ -365,10 +380,12 @@ exports.postAdminLogin = async (req, res) => {
       });
     }
 
-    return res.status(401).json({ error: 'Invalid credentials. Access restricted.' });
+    const msg = 'Invalid credentials. Access restricted.';
+    return res.status(401).json({ success: false, error: msg, message: msg });
   } catch (err) {
     console.error('postAdminLogin error:', err);
-    res.status(500).json({ error: 'Server error during admin authentication.' });
+    const msg = 'Server error during admin authentication.';
+    res.status(500).json({ success: false, error: msg, message: msg });
   }
 };
 
@@ -400,22 +417,28 @@ exports.getArtworks = async (req, res) => {
       { id: 'wildlife & nature', name: 'Wildlife & Nature' }
     ];
 
-    res.json({ artworks, featuredArtworks, categories });
+    res.json({ success: true, artworks, featuredArtworks, categories });
   } catch (err) {
     console.error('getArtworks error:', err);
-    res.status(500).json({ error: 'Failed to fetch artworks.' });
+    const msg = 'Failed to fetch artworks.';
+    res.status(500).json({ success: false, error: msg, message: msg });
   }
 };
 
 exports.getArtworkById = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      const msg = 'Artwork not found.';
+      return res.status(404).json({ success: false, error: msg, message: msg });
+    }
     const artwork = await Artwork.findById(req.params.id);
     if (!artwork) {
-      return res.status(404).json({ error: 'Artwork not found.' });
+      const msg = 'Artwork not found.';
+      return res.status(404).json({ success: false, error: msg, message: msg });
     }
-    res.json({ artwork });
+    res.json({ success: true, artwork });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message, message: err.message });
   }
 };
 
@@ -423,7 +446,7 @@ exports.getArtworkById = async (req, res) => {
 exports.getCalculatePrice = (req, res) => {
   const { medium, size, num_faces, frame_type } = req.query;
   const pricing = calculateOrderPrice(medium, size, num_faces, frame_type);
-  res.json({ pricing });
+  res.json({ success: true, pricing });
 };
 
 exports.postCreateOrder = async (req, res) => {
@@ -444,11 +467,13 @@ exports.postCreateOrder = async (req, res) => {
     } = req.body;
 
     if (!req.file) {
-      return res.status(400).json({ error: 'Please upload a reference photograph for the artist to draw from.' });
+      const msg = 'Please upload a reference photograph for the artist to draw from.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     if (!customer_name || !customer_email || !customer_phone || !shipping_address || !city || !pincode) {
-      return res.status(400).json({ error: 'Please complete all required recipient and delivery address details.' });
+      const msg = 'Please complete all required recipient and delivery address details.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     const referencePhotoPath = `/uploads/orders/${req.file.filename}`;
@@ -504,21 +529,28 @@ exports.postCreateOrder = async (req, res) => {
     });
   } catch (err) {
     console.error('postCreateOrder error:', err);
-    res.status(500).json({ error: 'Failed to create commission order.' });
+    const msg = 'Failed to create commission order.';
+    res.status(500).json({ success: false, error: msg, message: msg });
   }
 };
 
 exports.getMyOrders = async (req, res) => {
   try {
     if (!req.session || !req.session.userId) {
-      return res.status(401).json({ error: 'Please log in to view your commissions.' });
+      const msg = 'Please log in to view your commissions.';
+      return res.status(401).json({ success: false, error: msg, message: msg });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.session.userId)) {
+      return res.json({ success: true, orders: [] });
     }
 
     const orders = await Order.find({ user_id: req.session.userId }).sort({ created_at: -1 });
-    res.json({ orders });
+    res.json({ success: true, orders });
   } catch (err) {
     console.error('getMyOrders error:', err);
-    res.status(500).json({ error: 'Failed to retrieve orders.' });
+    const msg = 'Failed to retrieve orders.';
+    res.status(500).json({ success: false, error: msg, message: msg });
   }
 };
 
@@ -527,11 +559,12 @@ exports.getOrderByNumber = async (req, res) => {
     const { orderNumber } = req.params;
     const order = await Order.findOne({ order_number: orderNumber });
     if (!order) {
-      return res.status(404).json({ error: 'Order not found.' });
+      const msg = 'Order not found.';
+      return res.status(404).json({ success: false, error: msg, message: msg });
     }
-    res.json({ order });
+    res.json({ success: true, order });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message, message: err.message });
   }
 };
 
@@ -551,7 +584,8 @@ exports.postProcessPayment = async (req, res) => {
 
     const order = await Order.findOne({ order_number: orderNumber });
     if (!order) {
-      return res.status(404).json({ error: 'Order not found.' });
+      const msg = 'Order not found.';
+      return res.status(404).json({ success: false, error: msg, message: msg });
     }
 
     if (customer_name && shipping_address && city && pincode) {
@@ -567,7 +601,7 @@ exports.postProcessPayment = async (req, res) => {
     const txnMethodCode = (payment_method || 'UPI').toUpperCase().slice(0, 3);
     const transactionId = `TXN-${txnMethodCode}-${Date.now().toString().slice(-6)}-${randomSuffix}`;
 
-    const paymentStatus = (payment_method && payment_method.includes('Cash on Delivery')) ? 'Pending (COD)' : 'Paid';
+    const paymentStatus = (payment_method && (payment_method.includes('Cash on Delivery') || payment_method === 'COD')) ? 'Pending (COD)' : 'Paid';
     const orderStatus = 'Sketching in Progress';
 
     order.payment_method = payment_method || 'UPI Online Payment';
@@ -596,7 +630,8 @@ exports.postProcessPayment = async (req, res) => {
     });
   } catch (err) {
     console.error('postProcessPayment error:', err);
-    res.status(500).json({ error: 'Payment processing failed.' });
+    const msg = 'Payment processing failed.';
+    res.status(500).json({ success: false, error: msg, message: msg });
   }
 };
 
@@ -625,7 +660,8 @@ exports.postResendReceiptEmail = async (req, res) => {
     const { orderNumber } = req.params;
     const order = await Order.findOne({ order_number: orderNumber });
     if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+      const msg = 'Order not found';
+      return res.status(404).json({ success: false, error: msg, message: msg });
     }
 
     const pdfBuffer = await generateOrderReceiptPDF(order);
@@ -634,11 +670,13 @@ exports.postResendReceiptEmail = async (req, res) => {
     if (result.success) {
       res.json({ success: true, message: `Receipt sent to ${order.customer_email}!` });
     } else {
-      res.status(500).json({ error: result.error || 'Could not dispatch email.' });
+      const msg = result.error || 'Could not dispatch email.';
+      res.status(500).json({ success: false, error: msg, message: msg });
     }
   } catch (err) {
     console.error('postResendReceiptEmail error:', err);
-    res.status(500).json({ error: 'Error resending email.' });
+    const msg = 'Error resending email.';
+    res.status(500).json({ success: false, error: msg, message: msg });
   }
 };
 
@@ -650,7 +688,8 @@ const checkIsAdmin = (req) => {
 exports.getAdminDashboard = async (req, res) => {
   try {
     if (!checkIsAdmin(req)) {
-      return res.status(403).json({ error: 'Access restricted to administrator.' });
+      const msg = 'Access restricted to administrator.';
+      return res.status(403).json({ success: false, error: msg, message: msg });
     }
 
     const stats = await Order.getDashboardStats();
@@ -659,6 +698,7 @@ exports.getAdminDashboard = async (req, res) => {
     const usersCount = await User.countDocuments();
 
     res.json({
+      success: true,
       stats,
       recentOrders,
       artworksCount,
@@ -667,59 +707,80 @@ exports.getAdminDashboard = async (req, res) => {
     });
   } catch (err) {
     console.error('getAdminDashboard error:', err);
-    res.status(500).json({ error: 'Failed to load admin dashboard.' });
+    const msg = 'Failed to load admin dashboard.';
+    res.status(500).json({ success: false, error: msg, message: msg });
   }
 };
 
 exports.getAdminOrders = async (req, res) => {
   try {
     if (!checkIsAdmin(req)) {
-      return res.status(403).json({ error: 'Access restricted.' });
+      const msg = 'Access restricted.';
+      return res.status(403).json({ success: false, error: msg, message: msg });
     }
 
     const orders = await Order.find().sort({ created_at: -1 });
-    res.json({ orders });
+    res.json({ success: true, orders });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message, message: err.message });
   }
 };
 
 exports.postAdminUpdateOrderStatus = async (req, res) => {
   try {
     if (!checkIsAdmin(req)) {
-      return res.status(403).json({ error: 'Access restricted.' });
+      const msg = 'Access restricted.';
+      return res.status(403).json({ success: false, error: msg, message: msg });
     }
 
-    const { orderId, order_status } = req.body;
-    await Order.findByIdAndUpdate(orderId, { order_status });
-    res.json({ success: true, message: 'Order status updated successfully.' });
+    const { orderId, order_status, orderStatus } = req.body;
+    const resolvedStatus = order_status || orderStatus;
+    if (!orderId || !resolvedStatus) {
+      const msg = 'Order ID and order status are required.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
+    }
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      const msg = 'Invalid order ID.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
+    }
+
+    const updatedOrder = await Order.findByIdAndUpdate(orderId, { order_status: resolvedStatus }, { new: true });
+    if (!updatedOrder) {
+      const msg = 'Order not found.';
+      return res.status(404).json({ success: false, error: msg, message: msg });
+    }
+
+    res.json({ success: true, message: 'Order status updated successfully.', order: updatedOrder });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message, message: err.message });
   }
 };
 
 exports.getAdminArtworks = async (req, res) => {
   try {
     if (!checkIsAdmin(req)) {
-      return res.status(403).json({ error: 'Access restricted.' });
+      const msg = 'Access restricted.';
+      return res.status(403).json({ success: false, error: msg, message: msg });
     }
 
     const artworks = await Artwork.find().sort({ _id: -1 });
-    res.json({ artworks });
+    res.json({ success: true, artworks });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message, message: err.message });
   }
 };
 
 exports.postAdminAddArtwork = async (req, res) => {
   try {
     if (!checkIsAdmin(req)) {
-      return res.status(403).json({ error: 'Access restricted.' });
+      const msg = 'Access restricted.';
+      return res.status(403).json({ success: false, error: msg, message: msg });
     }
 
-    const { title, category, medium, size, price, description, featured } = req.body;
+    const { title, category, medium, size, dimensions, price, description, featured } = req.body;
     if (!title || !category || !price) {
-      return res.status(400).json({ error: 'Title, category, and price are required.' });
+      const msg = 'Title, category, and price are required.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     let imageUrl = '/images/samples/portrait_1_hyperrealistic.svg';
@@ -731,7 +792,7 @@ exports.postAdminAddArtwork = async (req, res) => {
       title: title.trim(),
       category: category.trim(),
       medium: medium || 'Graphite & Charcoal',
-      size: size || 'A3 (11.7 x 16.5 in)',
+      size: size || dimensions || 'A3 (11.7 x 16.5 in)',
       price: parseFloat(price) || 2500,
       description: description || '',
       image_url: imageUrl,
@@ -741,32 +802,41 @@ exports.postAdminAddArtwork = async (req, res) => {
     res.json({ success: true, artwork: newArt });
   } catch (err) {
     console.error('postAdminAddArtwork error:', err);
-    res.status(500).json({ error: 'Failed to add artwork.' });
+    const msg = 'Failed to add artwork.';
+    res.status(500).json({ success: false, error: msg, message: msg });
   }
 };
 
 exports.postAdminEditArtwork = async (req, res) => {
   try {
     if (!checkIsAdmin(req)) {
-      return res.status(403).json({ error: 'Access restricted.' });
+      const msg = 'Access restricted.';
+      return res.status(403).json({ success: false, error: msg, message: msg });
     }
 
     const { id } = req.params;
-    const { title, category, medium, size, price, description, featured } = req.body;
+    const { title, category, medium, size, dimensions, price, description, featured } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      const msg = 'Artwork not found.';
+      return res.status(404).json({ success: false, error: msg, message: msg });
+    }
 
     const artwork = await Artwork.findById(id);
     if (!artwork) {
-      return res.status(404).json({ error: 'Artwork not found.' });
+      const msg = 'Artwork not found.';
+      return res.status(404).json({ success: false, error: msg, message: msg });
     }
 
     if (!title || !category || !price) {
-      return res.status(400).json({ error: 'Title, category, and price are required.' });
+      const msg = 'Title, category, and price are required.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
     artwork.title = title.trim();
     artwork.category = category.trim();
     artwork.medium = medium ? medium.trim() : artwork.medium;
-    artwork.size = size || artwork.size;
+    artwork.size = size || dimensions || artwork.size;
     artwork.price = parseFloat(price) || artwork.price;
     artwork.description = description !== undefined ? description.trim() : artwork.description;
     artwork.featured = (featured === 'true' || featured === true || featured === 'on' || featured === '1') ? 1 : 0;
@@ -779,28 +849,44 @@ exports.postAdminEditArtwork = async (req, res) => {
     res.json({ success: true, artwork });
   } catch (err) {
     console.error('postAdminEditArtwork error:', err);
-    res.status(500).json({ error: 'Failed to update artwork.' });
+    const msg = 'Failed to update artwork.';
+    res.status(500).json({ success: false, error: msg, message: msg });
   }
 };
 
 exports.postAdminDeleteArtwork = async (req, res) => {
   try {
     if (!checkIsAdmin(req)) {
-      return res.status(403).json({ error: 'Access restricted.' });
+      const msg = 'Access restricted.';
+      return res.status(403).json({ success: false, error: msg, message: msg });
     }
 
-    const { id } = req.body;
-    await Artwork.findByIdAndDelete(id);
+    const targetId = req.body.id || req.body.artworkId;
+    if (!targetId) {
+      const msg = 'Artwork ID is required.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
+    }
+    if (!mongoose.Types.ObjectId.isValid(targetId)) {
+      const msg = 'Invalid artwork ID.';
+      return res.status(400).json({ success: false, error: msg, message: msg });
+    }
+
+    const deletedArtwork = await Artwork.findByIdAndDelete(targetId);
+    if (!deletedArtwork) {
+      const msg = 'Artwork not found.';
+      return res.status(404).json({ success: false, error: msg, message: msg });
+    }
     res.json({ success: true, message: 'Artwork removed from portfolio.' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message, message: err.message });
   }
 };
 
 exports.getAdminTestEmail = async (req, res) => {
   try {
     if (!checkIsAdmin(req)) {
-      return res.status(403).json({ error: 'Access restricted.' });
+      const msg = 'Access restricted.';
+      return res.status(403).json({ success: false, error: msg, message: msg });
     }
 
     await transporter.verify();

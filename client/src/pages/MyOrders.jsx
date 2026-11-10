@@ -20,7 +20,7 @@ export default function MyOrders() {
       if (res.ok && data.success) {
         setOrders(data.orders || []);
       } else {
-        setError(data.message || 'Failed to load commissions');
+        setError(data.message || data.error || 'Failed to load commissions');
       }
     } catch (err) {
       setError('Network error fetching orders');
@@ -35,8 +35,15 @@ export default function MyOrders() {
       case 'paid':
         return 'status-block-paid';
       case 'in progress':
+      case 'sketching in progress':
+      case 'penciling in progress':
       case 'drawing':
       case 'framing':
+      case 'finishing & framing':
+      case 'framing & archival sealing':
+      case 'digital proof sent':
+      case 'payment received':
+      case 'dispatched':
       case 'shipped':
         return 'status-block-progress';
       default:
@@ -74,12 +81,12 @@ export default function MyOrders() {
       ) : (
         <div className="orders-cards-list">
           {orders.map((ord) => (
-            <div key={ord._id || ord.orderNumber} className="order-history-card">
+            <div key={ord._id || ord.order_number} className="order-history-card">
               <div className="order-card-top-bar">
                 <div className="order-top-meta">
-                  <span className="order-num-label">Order Ref: <strong>{ord.orderNumber}</strong></span>
+                  <span className="order-num-label">Order Ref: <strong>{ord.order_number}</strong></span>
                   <span className="order-date-label">
-                    {new Date(ord.createdAt).toLocaleDateString('en-IN', {
+                    {new Date(ord.created_at).toLocaleDateString('en-IN', {
                       year: 'numeric',
                       month: 'short',
                       day: 'numeric'
@@ -88,16 +95,16 @@ export default function MyOrders() {
                 </div>
 
                 {/* Clean rectangular status block (NO pills, matching border) */}
-                <div className={`status-block ${getStatusBlockClass(ord.orderStatus || ord.paymentStatus)}`}>
-                  {ord.orderStatus || ord.paymentStatus || 'Received'}
+                <div className={`status-block ${getStatusBlockClass(ord.order_status || ord.payment_status)}`}>
+                  {ord.order_status || ord.payment_status || 'Received'}
                 </div>
               </div>
 
               <div className="order-card-content-grid">
-                {ord.referencePhoto && (
+                {ord.reference_photo && (
                   <div className="order-ref-thumb-box">
                     <img
-                      src={ord.referencePhoto}
+                      src={ord.reference_photo}
                       alt="Commission Reference"
                       className="order-ref-thumb"
                     />
@@ -106,12 +113,12 @@ export default function MyOrders() {
 
                 <div className="order-specs-col">
                   <h4 className="order-item-title">
-                    {ord.size} — {ord.medium}
+                    {ord.portrait_size} — {ord.portrait_medium}
                   </h4>
                   <div className="order-sub-specs">
-                    <span>Subjects: {ord.faces} {Number(ord.faces) === 1 ? 'Face' : 'Faces'}</span>
+                    <span>Subjects: {ord.num_faces} {Number(ord.num_faces) === 1 ? 'Face' : 'Faces'}</span>
                     <span>•</span>
-                    <span>Framing: {ord.framing}</span>
+                    <span>Framing: {ord.frame_type}</span>
                     {ord.isExpress && (
                       <>
                         <span>•</span>
@@ -120,27 +127,27 @@ export default function MyOrders() {
                     )}
                   </div>
                   <div className="order-delivery-address-snippet">
-                    Ship to: {ord.customerName}, {ord.shippingAddress}, {ord.city}
+                    Ship to: {ord.customer_name}, {ord.shipping_address}, {ord.city}
                   </div>
                 </div>
 
                 <div className="order-pricing-actions-col">
                   <div className="order-price-display">
-                    ₹{ord.totalPrice?.toLocaleString('en-IN')}
+                    ₹{ord.total_amount?.toLocaleString('en-IN')}
                   </div>
                   <span className="payment-tag-sub">
-                    {ord.paymentStatus === 'PAID' ? 'Payment Verified' : 'Pending Payment'}
+                    {ord.payment_status?.toLowerCase() === 'paid' ? 'Payment Verified' : (ord.payment_status || 'Pending Payment')}
                   </span>
 
                   <div className="order-buttons-group">
                     <Link
-                      to={`/receipt/${ord.orderNumber}`}
+                      to={`/receipt/${ord.order_number}`}
                       className="btn-order-action btn-view-invoice"
                     >
                       View Tax Invoice
                     </Link>
                     <a
-                      href={apiUrl(`/api/billing/receipt/${ord.orderNumber}/download-pdf`)}
+                      href={apiUrl(`/api/billing/receipt/${ord.order_number}/download-pdf`)}
                       className="btn-order-action btn-download-pdf-sm"
                     >
                       Download PDF

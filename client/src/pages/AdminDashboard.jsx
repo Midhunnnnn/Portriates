@@ -27,10 +27,15 @@ export default function AdminDashboard() {
       const res = await apiFetch('/api/admin/dashboard');
       const data = await res.json();
       if (res.ok && data.success) {
-        setStats(data.stats);
+        setStats({
+          totalOrders: data.stats?.totalOrders || 0,
+          totalRevenue: data.stats?.totalRevenue || 0,
+          pendingOrders: (data.stats?.pendingOrders || 0) + (data.stats?.inProgressOrders || 0),
+          totalArtworks: data.stats?.totalArtworks ?? data.artworksCount ?? 0
+        });
         setRecentOrders(data.recentOrders || []);
       } else {
-        setError(data.message || 'Failed to load dashboard metrics');
+        setError(data.message || data.error || 'Failed to load dashboard metrics');
       }
     } catch (err) {
       setError('Error loading administrative data');
@@ -43,12 +48,12 @@ export default function AdminDashboard() {
     setTestingSmtp(true);
     setSmtpStatus('');
     try {
-      const res = await apiFetch('/api/admin/test-email', { method: 'POST' });
+      const res = await apiFetch('/api/admin/test-email');
       const data = await res.json();
       if (res.ok && data.success) {
-        setSmtpStatus('Nodemailer test successful! Diagnostic email delivered to midhunrs727@gmail.com.');
+        setSmtpStatus(data.message || 'Nodemailer test successful! Diagnostic email delivered to midhunrs727@gmail.com.');
       } else {
-        setSmtpStatus('Nodemailer test error: ' + (data.message || 'Verification failed'));
+        setSmtpStatus('Nodemailer test error: ' + (data.message || data.error || 'Verification failed'));
       }
     } catch (err) {
       setSmtpStatus('Failed to test SMTP connection.');
@@ -169,25 +174,25 @@ export default function AdminDashboard() {
               </thead>
               <tbody>
                 {recentOrders.map((ord) => (
-                  <tr key={ord._id || ord.orderNumber}>
-                    <td><strong>{ord.orderNumber}</strong></td>
+                  <tr key={ord._id || ord.order_number}>
+                    <td><strong>{ord.order_number}</strong></td>
                     <td>
-                      <div><strong>{ord.customerName}</strong></div>
-                      <div className="table-subtext">{ord.customerEmail}</div>
+                      <div><strong>{ord.customer_name}</strong></div>
+                      <div className="table-subtext">{ord.customer_email}</div>
                     </td>
                     <td>
-                      <div>{ord.size}</div>
-                      <div className="table-subtext">{ord.medium}</div>
+                      <div>{ord.portrait_size}</div>
+                      <div className="table-subtext">{ord.portrait_medium}</div>
                     </td>
-                    <td><strong>₹{ord.totalPrice?.toLocaleString('en-IN')}</strong></td>
+                    <td><strong>₹{ord.total_amount?.toLocaleString('en-IN')}</strong></td>
                     <td>
-                      <span className={`status-block ${ord.paymentStatus === 'PAID' ? 'status-block-paid' : 'status-block-pending'}`}>
-                        {ord.paymentStatus}
+                      <span className={`status-block ${ord.payment_status?.toLowerCase() === 'paid' ? 'status-block-paid' : 'status-block-pending'}`}>
+                        {ord.payment_status}
                       </span>
                     </td>
                     <td>
                       <span className="status-block status-block-progress">
-                        {ord.orderStatus || 'Pending'}
+                        {ord.order_status || 'Pending'}
                       </span>
                     </td>
                     <td>
