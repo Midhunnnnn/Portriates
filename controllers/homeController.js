@@ -1,16 +1,28 @@
 const Artwork = require('../models/Artwork');
+const { FALLBACK_ARTWORKS, isUiOnlyShowcaseWithoutDb } = require('../config/fallbackArtworks');
 
 exports.getIndex = async (req, res) => {
   try {
     const category = req.query.category || 'all';
-    
-    let query = {};
-    if (category && category !== 'all') {
-      query.category = { $regex: new RegExp(`^${category}$`, 'i') };
-    }
 
-    const artworks = await Artwork.find(query).sort({ _id: -1 });
-    const featuredArtworks = await Artwork.find({ featured: 1 }).sort({ _id: -1 }).limit(6);
+    let artworks;
+    let featuredArtworks;
+
+    if (isUiOnlyShowcaseWithoutDb()) {
+      const normalizedCategory = category.toLowerCase();
+      artworks = (category && normalizedCategory !== 'all')
+        ? FALLBACK_ARTWORKS.filter((art) => (art.category || '').toLowerCase() === normalizedCategory)
+        : FALLBACK_ARTWORKS;
+      featuredArtworks = FALLBACK_ARTWORKS.filter((art) => Number(art.featured) === 1).slice(0, 6);
+    } else {
+      let query = {};
+      if (category && category !== 'all') {
+        query.category = { $regex: new RegExp(`^${category}$`, 'i') };
+      }
+
+      artworks = await Artwork.find(query).sort({ _id: -1 });
+      featuredArtworks = await Artwork.find({ featured: 1 }).sort({ _id: -1 }).limit(6);
+    }
 
     const categories = [
       { id: 'all', name: 'All Artworks' },
@@ -37,7 +49,10 @@ exports.getIndex = async (req, res) => {
 exports.getArtworkDetails = async (req, res) => {
   try {
     const { id } = req.params;
-    const artwork = await Artwork.findById(id);
+    const artwork = isUiOnlyShowcaseWithoutDb()
+      ? FALLBACK_ARTWORKS.find((art) => String(art._id) === String(id))
+      : await Artwork.findById(id);
+
     if (!artwork) {
       return res.status(404).json({ success: false, message: 'Artwork not found' });
     }

@@ -8,6 +8,7 @@ const fs = require('fs');
 
 const { connectDB } = require('./config/db');
 const { MongoSessionStore } = require('./config/sessionStore');
+const { isUiOnlyShowcaseWithoutDb } = require('./config/fallbackArtworks');
 const { seedInitialData } = require('./utils/seedData');
 const { setUserContext } = require('./middleware/authMiddleware');
 const { isServerless, tmpUploadRoot } = require('./middleware/uploadMiddleware');
@@ -102,6 +103,9 @@ function ensureAppInitialized() {
 
 // Ensure MongoDB connection & safe initial seed before session/route handling
 app.use(async (req, res, next) => {
+  if (isUiOnlyShowcaseWithoutDb()) {
+    return next();
+  }
   try {
     await ensureAppInitialized();
     next();
@@ -116,21 +120,23 @@ const useSecureCookies = process.env.COOKIE_SECURE
   : isProduction;
 const cookieSameSite = process.env.COOKIE_SAME_SITE || (useSecureCookies ? 'none' : 'lax');
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || 'midhun_pencil_art_secret_key_2026',
-    resave: false,
-    saveUninitialized: false,
-    proxy: isProduction,
-    store: new MongoSessionStore(),
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-      httpOnly: true,
-      secure: useSecureCookies,
-      sameSite: cookieSameSite
-    }
-  })
-);
+const sessionOptions = {
+  secret: process.env.SESSION_SECRET || 'midhun_pencil_art_secret_key_2026',
+  resave: false,
+  saveUninitialized: false,
+  proxy: isProduction,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    httpOnly: true,
+    secure: useSecureCookies,
+    sameSite: cookieSameSite
+  }
+};
+if (!isUiOnlyShowcaseWithoutDb()) {
+  sessionOptions.store = new MongoSessionStore();
+}
+
+app.use(session(sessionOptions));
 
 // Global user and flash context middleware
 app.use(setUserContext);
