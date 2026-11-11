@@ -2,6 +2,8 @@ const Order = require('../models/Order');
 const Artwork = require('../models/Artwork');
 const User = require('../models/User');
 const { transporter } = require('../config/mailer');
+const { resolveUploadedArtworkUrl } = require('../middleware/uploadMiddleware');
+const { safeDeleteUnusedArtworkAsset } = require('../config/cloudinary');
 
 exports.getDashboard = async (req, res) => {
   try {
@@ -77,7 +79,7 @@ exports.postAddArtwork = async (req, res) => {
 
     let imageUrl = '/images/samples/portrait_1_hyperrealistic.svg';
     if (req.file) {
-      imageUrl = `/uploads/artworks/${req.file.filename}`;
+      imageUrl = await resolveUploadedArtworkUrl(req.file, 'artworks');
     }
 
     await Artwork.create({
@@ -101,7 +103,10 @@ exports.postAddArtwork = async (req, res) => {
 exports.postDeleteArtwork = async (req, res) => {
   try {
     const { id } = req.body;
-    await Artwork.findByIdAndDelete(id);
+    const deletedArtwork = await Artwork.findByIdAndDelete(id);
+    if (deletedArtwork && deletedArtwork.image_url) {
+      await safeDeleteUnusedArtworkAsset(Artwork, deletedArtwork.image_url, deletedArtwork._id);
+    }
     res.redirect('/admin/artworks?success=Artwork removed from portfolio');
   } catch (err) {
     console.error('Error deleting artwork:', err);
@@ -144,6 +149,9 @@ exports.postEditArtwork = async (req, res) => {
       return res.redirect(`/admin/artworks/edit/${id}?error=Title, category, and price are required.`);
     }
 
+    const previousImageUrl = artwork.image_url;
+    let uploadedNewImageUrl = null;
+
     artwork.title = title.trim();
     artwork.category = category.trim();
     artwork.medium = medium ? medium.trim() : artwork.medium;
@@ -154,10 +162,14 @@ exports.postEditArtwork = async (req, res) => {
 
     // Replace photo if new file uploaded
     if (req.file) {
-      artwork.image_url = `/uploads/artworks/${req.file.filename}`;
+      uploadedNewImageUrl = await resolveUploadedArtworkUrl(req.file, 'artworks');
+      artwork.image_url = uploadedNewImageUrl;
     }
 
     await artwork.save();
+    if (uploadedNewImageUrl && previousImageUrl && previousImageUrl !== uploadedNewImageUrl) {
+      await safeDeleteUnusedArtworkAsset(Artwork, previousImageUrl, artwork._id);
+    }
 
     res.redirect('/admin/artworks?success=Portrait artwork updated successfully!');
   } catch (err) {

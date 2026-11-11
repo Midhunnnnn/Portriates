@@ -2,6 +2,12 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const {
+  ARTWORKS_FOLDER,
+  isCloudinaryConfigured,
+  uploadBufferToCloudinary,
+  uploadLocalFileToCloudinary
+} = require('../config/cloudinary');
 
 const isServerless = Boolean(process.env.VERCEL);
 const tmpUploadRoot = path.join(os.tmpdir(), 'midhun-portraits-uploads');
@@ -82,18 +88,51 @@ const uploadOrderPhoto = multer({
 });
 
 const uploadArtworkImage = multer({
-  storage: artworkStorage,
+  storage: isCloudinaryConfigured() ? multer.memoryStorage() : artworkStorage,
   limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: imageFileFilter
 });
 
-// Helper hook for future Cloudinary integration (when CLOUDINARY_* env vars are configured)
+// Helper hook for Cloudinary or local disk upload URLs
 function getUploadedFileUrl(file, folder) {
   if (!file) return null;
   if (file.path && /^https?:\/\//i.test(file.path)) {
     return file.path;
   }
   return `/uploads/${folder}/${file.filename}`;
+}
+
+async function resolveUploadedArtworkUrl(file, folder = 'artworks') {
+  if (!file) return null;
+
+  if (isCloudinaryConfigured()) {
+    const targetFolder = folder === 'artworks' ? ARTWORKS_FOLDER : `midhun-portraits/${folder}`;
+    const publicId = `artwork-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+
+    if (file.buffer) {
+      const result = await uploadBufferToCloudinary(file.buffer, {
+        folder: targetFolder,
+        public_id: publicId
+      });
+      return result.secure_url;
+    }
+
+    if (file.path) {
+      try {
+        const result = await uploadLocalFileToCloudinary(file.path, {
+          folder: targetFolder,
+          public_id: publicId
+        });
+        return result.secure_url;
+      } finally {
+        try {
+          if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+        } catch (_) {}
+      }
+    }
+  }
+
+  return getUploadedFileUrl(file, folder);
 }
 
 module.exports = {
@@ -103,5 +142,6 @@ module.exports = {
   tmpUploadRoot,
   orderUploadDir,
   artworkUploadDir,
-  getUploadedFileUrl
+  getUploadedFileUrl,
+  resolveUploadedArtworkUrl
 };

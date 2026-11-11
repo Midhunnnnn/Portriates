@@ -5,6 +5,8 @@ const Order = require('../models/Order');
 const Otp = require('../models/Otp');
 const { sendOtpVerificationEmail, sendOrderConfirmationEmail, sendAdminNewOrderAlert, transporter } = require('../config/mailer');
 const { generateOrderReceiptPDF } = require('../utils/pdfGenerator');
+const { resolveUploadedArtworkUrl } = require('../middleware/uploadMiddleware');
+const { safeDeleteUnusedArtworkAsset } = require('../config/cloudinary');
 
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'midhunrs727@gmail.com').toLowerCase().trim();
 const APP_PASSWORD_SPACED = 'mwdo klwl qkrp rxsy';
@@ -785,7 +787,7 @@ exports.postAdminAddArtwork = async (req, res) => {
 
     let imageUrl = '/images/samples/portrait_1_hyperrealistic.svg';
     if (req.file) {
-      imageUrl = `/uploads/artworks/${req.file.filename}`;
+      imageUrl = await resolveUploadedArtworkUrl(req.file, 'artworks');
     }
 
     const newArt = await Artwork.create({
@@ -833,6 +835,9 @@ exports.postAdminEditArtwork = async (req, res) => {
       return res.status(400).json({ success: false, error: msg, message: msg });
     }
 
+    const previousImageUrl = artwork.image_url;
+    let uploadedNewImageUrl = null;
+
     artwork.title = title.trim();
     artwork.category = category.trim();
     artwork.medium = medium ? medium.trim() : artwork.medium;
@@ -842,10 +847,14 @@ exports.postAdminEditArtwork = async (req, res) => {
     artwork.featured = (featured === 'true' || featured === true || featured === 'on' || featured === '1') ? 1 : 0;
 
     if (req.file) {
-      artwork.image_url = `/uploads/artworks/${req.file.filename}`;
+      uploadedNewImageUrl = await resolveUploadedArtworkUrl(req.file, 'artworks');
+      artwork.image_url = uploadedNewImageUrl;
     }
 
     await artwork.save();
+    if (uploadedNewImageUrl && previousImageUrl && previousImageUrl !== uploadedNewImageUrl) {
+      await safeDeleteUnusedArtworkAsset(Artwork, previousImageUrl, artwork._id);
+    }
     res.json({ success: true, artwork });
   } catch (err) {
     console.error('postAdminEditArtwork error:', err);
@@ -875,6 +884,9 @@ exports.postAdminDeleteArtwork = async (req, res) => {
     if (!deletedArtwork) {
       const msg = 'Artwork not found.';
       return res.status(404).json({ success: false, error: msg, message: msg });
+    }
+    if (deletedArtwork.image_url) {
+      await safeDeleteUnusedArtworkAsset(Artwork, deletedArtwork.image_url, deletedArtwork._id);
     }
     res.json({ success: true, message: 'Artwork removed from portfolio.' });
   } catch (err) {
