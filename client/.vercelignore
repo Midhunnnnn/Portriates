@@ -1,9 +1,0 @@
-node_modules
-dist
-dist_backup
-.env
-.env.*
-!.env.example
-.vercel
-*.log
-

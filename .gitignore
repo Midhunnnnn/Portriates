@@ -2,7 +2,6 @@
 .env
 .env.*
 !.env.example
-!client/.env.example
 *.pem
 *.key
 credentials*.json
@@ -14,9 +13,10 @@ node_modules/
 dist/
 dist-ssr/
 dist_backup/
-client/dist/
-client/dist_backup/
 .vercel
+
+# Separate React frontend (off-white theme kept locally; origin keeps dark-theme EJS model only)
+client/
 
 # Local MongoDB database files
 data/db/
