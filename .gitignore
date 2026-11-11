@@ -1,5 +1,29 @@
+# Environment & credential files
 .env
-.env.local
-.env.*.local
-.vercel
+.env.*
+!.env.example
+!client/.env.example
+*.pem
+*.key
+credentials*.json
+
+# Dependencies
 node_modules/
+
+# Build output & deployment
+dist/
+dist-ssr/
+dist_backup/
+client/dist/
+client/dist_backup/
+.vercel
+
+# Local MongoDB database files
+data/db/
+
+# Logs & OS files
+logs/
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
