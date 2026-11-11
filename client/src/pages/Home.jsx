@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ArtworkModal from '../components/ArtworkModal';
 import PencilCat3D from '../components/PencilCat3D';
-import { apiFetch } from '../config/api';
+import { API_BASE_URL, apiFetch } from '../config/api';
+import { FALLBACK_ARTWORKS } from '../data/fallbackArtworks';
 
 const CATEGORIES = [
   'All',
@@ -24,15 +25,27 @@ export default function Home() {
   }, []);
 
   const fetchArtworks = async () => {
+    if (import.meta.env.PROD && !API_BASE_URL) {
+      setArtworks(FALLBACK_ARTWORKS);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await apiFetch('/api/artworks');
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setArtworks(data.artworks || []);
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.artworks)) {
+          setArtworks(data.artworks);
+          return;
+        }
       }
+      setArtworks(FALLBACK_ARTWORKS);
     } catch (err) {
       console.error('Error fetching artworks:', err);
+      setArtworks(FALLBACK_ARTWORKS);
     } finally {
       setLoading(false);
     }

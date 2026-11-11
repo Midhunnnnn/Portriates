@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiFetch } from '../config/api';
+import { API_BASE_URL, apiFetch } from '../config/api';
 
 const SIZES = [
   { id: 'A4 (8.3 x 11.7 in)', name: 'A4 Canvas', dims: '8.3 x 11.7 in / 21 x 29.7 cm', basePrice: 2499 },
@@ -86,6 +86,10 @@ export default function GiveOrder() {
   }, [formData.size, formData.medium, formData.faces, formData.framing, formData.isExpress]);
 
   const calculatePrice = async () => {
+    if (import.meta.env.PROD && !API_BASE_URL) {
+      return;
+    }
+
     try {
       const params = new URLSearchParams({
         size: formData.size,
@@ -94,6 +98,8 @@ export default function GiveOrder() {
         frame_type: formData.framing
       });
       const res = await apiFetch(`/api/orders/calculate-price?${params.toString()}`);
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) return;
       const data = await res.json();
       if (res.ok && data.success && data.pricing) {
         const p = data.pricing;

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiFetch } from '../config/api';
+import { API_BASE_URL, apiFetch } from '../config/api';
 
 const AuthContext = createContext();
 
@@ -9,8 +9,19 @@ export const AuthProvider = ({ children }) => {
 
   // Check existing session
   const checkAuth = async () => {
+    if (import.meta.env.PROD && !API_BASE_URL) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await apiFetch('/api/auth/me');
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        setUser(null);
+        return;
+      }
       const data = await res.json();
       if (res.ok && data.success && data.user) {
         setUser(data.user);
